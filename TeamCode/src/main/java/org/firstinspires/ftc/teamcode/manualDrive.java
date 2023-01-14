@@ -23,8 +23,8 @@ public class manualDrive extends LinearOpMode{
             // make the bot field oriented while considering the starting angle
             joystick_left.addAngle(-driveController.getRobotAngle() - AutonomousDrive.lastAngle);
 
-            // slow mode if the right bumper is pressed
-            if (gamepad1.right_bumper) driveController.overallDrivingPower = 0.4;
+            // slow mode if the grabber is out
+            if (driveController.grabberLeft.getPosition() == driveController.grabberOut) driveController.overallDrivingPower = 0.4;
 
             // move the bot with 70% turning speed
             driveController.mecanumDrive(joystick_left, gamepad1.right_stick_x * 0.7);
@@ -40,7 +40,7 @@ public class manualDrive extends LinearOpMode{
             else if (right_trigger_released()) driveController.setElevatorPosition(elevatorPositions.bottom);
 
             // temp
-            driveController.moveArm(gamepad1.left_trigger);
+            driveController.moveArm(gamepad1.left_trigger, gamepad1);
 
             // make the commands take effect
             driveController.update();

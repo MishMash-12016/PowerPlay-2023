@@ -23,8 +23,8 @@ import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 
 class elevatorPositions{
     public static int high   = 20500;
-    public static int middle = 10000;
-    public static int low    = 1000 ;
+    public static int middle = 12000;
+    public static int low    = 5000 ;
     public static int bottom = 0    ;
 }
 
@@ -34,7 +34,7 @@ class DriveController {
     private final double sq2 = Math.sqrt(2);
 
     /** SERVO CONSTANTS */
-    private final double grabberOut = 0.26;
+    public final double grabberOut = 0.26;
     private final double grabberMiddle = 0.79;
     private final double grabberIn  = 0.92;
 
@@ -48,9 +48,9 @@ class DriveController {
     private final double placerOutAutonomous = 0.76;
     private final double placerOutTeleOp = 0.85;
 
-    private final double pufferInit    = 0.14;
-    private final double pufferGrab    = 0.36;
-    private final double pufferRelease = 0.14;
+    private final double pufferInit    = 0;
+    private final double pufferGrab    = 0.2;
+    private final double pufferRelease = 0;
 
     private final double grabberGrab = 0.775;
     private final double grabberOpen = 0.45 ;
@@ -77,8 +77,8 @@ class DriveController {
     final private Servo armRight;
     final private Servo armLeft ;
 
-    final private Servo grabberRight;
-    final private Servo grabberLeft ;
+    final public Servo grabberRight;
+    final public Servo grabberLeft ;
 
     /** DRIVING MOTORS */
     final private DcMotor frontRight;
@@ -198,12 +198,12 @@ class DriveController {
     }
 
     /** IN PROGRESS */
-    public void moveArm(double position) {
+    public void moveArm(double position, Gamepad gamepad) {
         // temporary
         if (armTime.seconds() > 0.2 && armTime.seconds() < 0.8 && grabberSensor.getDistance(DistanceUnit.CM) < grabberCatchTrigger) {
             setArmPosition(armIn);
         } else if (armTime.seconds() > 0.8 || grabberSensor.getDistance(DistanceUnit.CM) > grabberCatchTrigger) {
-            if (position > 0) {
+            if (position > 0 || gamepad.right_bumper) {
                 grabber.setPosition(grabberOpen);
                 setGrabberPosition(grabberOut);
             } else {

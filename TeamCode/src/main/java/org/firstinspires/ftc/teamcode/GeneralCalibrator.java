@@ -18,18 +18,26 @@ public class GeneralCalibrator extends LinearOpMode {
     public void runOpMode() {
         waitForStart();
 
+        String[] names = {
+                "grabber",
+                "puffer",
+                "placerRight",
+                "armRight",
+                "grabberRight"
+        };
+
         ServoSystem[] systems = {
-                new ServoSystem(0, 1, new Pair<>("grabber", false)),
-                new ServoSystem(0, 1, new Pair<>("puffer", false)),
-                new ServoSystem(0, 1, new Pair<>("placerRight", true), new Pair<String, Boolean>("placerLeft" , false)),
-                new ServoSystem(0, 1, new Pair<>("armRight", false), new Pair<String, Boolean>("armLeft"    , true)),
-                new ServoSystem(0, 1, new Pair<>("grabberRight", true), new Pair<String, Boolean>("grabberLeft", false))
+                new ServoSystem(0, 1, new Pair<>(names[0], false)),
+                new ServoSystem(0, 1, new Pair<>(names[1], false)),
+                new ServoSystem(0, 1, new Pair<>(names[2], true), new Pair<String, Boolean>("placerLeft" , false)),
+                new ServoSystem(0, 1, new Pair<>(names[3], false), new Pair<String, Boolean>("armLeft"    , true)),
+                new ServoSystem(0, 1, new Pair<>(names[4], true), new Pair<String, Boolean>("grabberLeft", false))
         };
 
         int i = 0;
 
 
-        while (opModeIsActive() && gamepad1.a){
+        while (opModeIsActive() && !gamepad1.a){
             if (firstPress(gamepad1.right_bumper)){
                 i++;
             } else if (firstPress(gamepad1.left_bumper)){
@@ -38,7 +46,7 @@ public class GeneralCalibrator extends LinearOpMode {
             i = (i + systems.length) % systems.length;
 
             for (Servo servo : systems[i].servos) {
-                telemetry.addLine(servo.getDeviceName());
+                telemetry.addLine(names[i]);
             }
             telemetry.update();
         }
@@ -95,6 +103,8 @@ public class GeneralCalibrator extends LinearOpMode {
         public ArrayList<Servo> servos;
 
         public ServoSystem(double minPosition, double maxPosition, Pair<String, Boolean>... namesAndToFlip){
+            servos = new ArrayList<>();
+
             for(Pair<String, Boolean> nameAndToFlip : namesAndToFlip){
 
                 servos.add(hardwareMap.servo.get(nameAndToFlip.fst));
