@@ -33,9 +33,8 @@ public class Test extends LinearOpMode {
         resetRuntime();
 
         while (opModeIsActive()) {
-            if (Y_pressed()) driveController.setElevatorPosition(20500);
-            if (X_pressed()) driveController.setElevatorPosition(12000);
-            if (A_pressed()) driveController.setElevatorPosition(5000 );
+            if (Y_pressed()) driveController.setGrabberPosition(driveController.grabberIn);
+            if (A_pressed()) driveController.setGrabberPosition(driveController.grabberPile[0]);
 
             driveController.update();
         }

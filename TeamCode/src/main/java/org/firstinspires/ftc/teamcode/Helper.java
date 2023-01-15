@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
@@ -34,11 +35,11 @@ class DriveController {
     private final double sq2 = Math.sqrt(2);
 
     /** SERVO CONSTANTS */
-    public final double grabberOut = 0.26;
-    private final double grabberMiddle = 0.79;
-    private final double grabberIn  = 0.92;
+    private final double grabberMiddle = 0.08;
+    public final double grabberIn  = 0.94;
 
-    private final double[] grabberPile = {0.41, 0.38, 0.34, 0.31, 0.28};
+    //                                  low > > > > > > > > > > > high
+    public final double[] grabberPile = {0.27, 0.32, 0.36, 0.40, 0.43};
 
     private final double armOut = 0.89; // hiTech value 0.61;
     private final double armIn  = 0.5;  // hiTech value 0.41;
@@ -48,9 +49,8 @@ class DriveController {
     private final double placerOutAutonomous = 0.76;
     private final double placerOutTeleOp = 0.85;
 
-    private final double pufferInit    = 0;
-    private final double pufferGrab    = 0.2;
-    private final double pufferRelease = 0;
+    private final double pufferGrab    = 0.18;
+    private final double pufferRelease = 0.018;
 
     private final double grabberGrab = 0.775;
     private final double grabberOpen = 0.45 ;
@@ -137,7 +137,7 @@ class DriveController {
 
         // setting the edge units to their initial positions
         grabber.setPosition(grabberOpen);
-        puffer .setPosition(pufferInit );
+        puffer .setPosition(pufferRelease);
 
 
         // getting the placers, arms and grabbers
@@ -153,7 +153,6 @@ class DriveController {
         // flipping the relevant servos direction
         armLeft     .setDirection(Servo.Direction.REVERSE);
         placerRight .setDirection(Servo.Direction.REVERSE);
-        grabberRight.setDirection(Servo.Direction.REVERSE);
 
         // setting the servos position to their initial positions
         setArmPosition(armIn);
@@ -198,21 +197,21 @@ class DriveController {
     }
 
     /** IN PROGRESS */
-    public void moveArm(double position, Gamepad gamepad) {
+    public void moveArm(double position, Telemetry t) {
         // temporary
         if (armTime.seconds() > 0.2 && armTime.seconds() < 0.8 && grabberSensor.getDistance(DistanceUnit.CM) < grabberCatchTrigger) {
             setArmPosition(armIn);
         } else if (armTime.seconds() > 0.8 || grabberSensor.getDistance(DistanceUnit.CM) > grabberCatchTrigger) {
-            if (position > 0 || gamepad.right_bumper) {
+            if (position > 0) {
                 grabber.setPosition(grabberOpen);
-                setGrabberPosition(grabberOut);
+                setGrabberPosition(grabberPile[0]);
             } else {
                 setGrabberPosition(grabberIn);
             }
             setArmPosition(position * (armOut - armIn) + armIn);
         }
 
-        if (grabberSensor.getDistance(DistanceUnit.CM) < grabberCatchTrigger && grabberLeft.getPosition() == grabberOut && grabber.getPosition() == grabberOpen) {
+        if (grabberSensor.getDistance(DistanceUnit.CM) < grabberCatchTrigger && grabberLeft.getPosition() == grabberPile[0] && grabber.getPosition() == grabberOpen) {
             grabber.setPosition(grabberGrab);
             armTime.reset();
         }
@@ -220,7 +219,7 @@ class DriveController {
 
     public void setElevatorPosition(int position) {
         if (position == elevatorPositions.bottom && elevatorPosition != position) {
-            puffer.setPosition(pufferInit);
+            puffer.setPosition(pufferRelease);
             setPlacerPosition(placerIn);
         } else if (position != elevatorPositions.bottom && elevatorPosition == elevatorPositions.bottom) {
             puffer.setPosition(pufferGrab);
@@ -295,46 +294,13 @@ class DriveController {
     }
 
     public void cycle() {
-        try {
-            for (int i = 0; i < 5; i++){
-                score();
+        score(4);
+        for (int i = 4; i > 0; i--){
+            collect(i);
+            score(i - 1);
+        }
 
-                setGrabberPosition(grabberPile[i]);
-
-                Thread.sleep(1500);
-
-                setArmPosition(armOut);
-
-
-                while (grabberSensor.getDistance(DistanceUnit.CM) < 6){}
-
-                Thread.sleep(750);
-
-                grabber.setPosition(grabberGrab);
-
-                Thread.sleep(1500);
-
-                setGrabberPosition(grabberMiddle);
-
-                Thread.sleep(750);
-
-                setArmPosition(armIn);
-
-                while (!armSensor.isPressed()){}
-
-                Thread.sleep(750);
-
-                setGrabberPosition(grabberIn);
-
-                Thread.sleep(750); // replacing the sensor for now
-
-                grabber.setPosition(grabberOpen);
-
-                Thread.sleep(750);
-            }
-
-            score();
-        } catch (InterruptedException e) {}
+        score();
     }
 
     public void elevatorController(){
@@ -350,8 +316,15 @@ class DriveController {
         }
     }
 
-    public void score(){
+    public void score(int nextConeNum) { score(true, nextConeNum); }
+    public void score() { score(false, 0); }
+
+    public void score(boolean prepareForNext, int nextConeNum){
         try {
+            if (grabber.getPosition() != grabberOpen){
+                grabber.setPosition(grabberOpen);
+                Thread.sleep(750);
+            }
             puffer.setPosition(pufferGrab);
             elevatorPosition = elevatorPositions.high;
 
@@ -359,17 +332,55 @@ class DriveController {
 
             setPlacerPosition(placerOutAutonomous);
 
+            if (prepareForNext) {
+                setGrabberPosition(grabberPile[nextConeNum]);
+
+                setArmPosition(armOut * 0.8);
+            }
+
             Thread.sleep(750);
 
             puffer.setPosition(pufferRelease);
 
             Thread.sleep(750);
 
-            puffer.setPosition(pufferInit);
+            puffer.setPosition(pufferRelease);
             setPlacerPosition(placerIn);
             elevatorPosition = elevatorPositions.bottom;
         }catch (InterruptedException e){}
 
+    }
+
+    public void collect(int coneNum){
+        try {
+            setGrabberPosition(grabberPile[coneNum]);
+            Thread.sleep((int)(500 / (grabberIn - grabberPile[0]) * Math.abs(grabberPile[coneNum] - grabberLeft.getPosition())));
+
+            setArmPosition(armOut);
+
+            while (grabberSensor.getDistance(DistanceUnit.CM) < 6) {}
+
+            Thread.sleep(750);
+
+            grabber.setPosition(grabberGrab);
+
+            Thread.sleep(1500);
+
+            setGrabberPosition(grabberMiddle);
+
+            Thread.sleep(750);
+
+            setArmPosition(armIn);
+
+            while (!armSensor.isPressed()) {
+            }
+
+            Thread.sleep(750);
+
+            setGrabberPosition(grabberIn);
+
+            Thread.sleep(750); // replacing the sensor for now
+        }catch (InterruptedException e){}
     }
 
 
