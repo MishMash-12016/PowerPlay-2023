@@ -31,7 +31,7 @@ public class GeneralCalibrator extends LinearOpMode {
                 new ServoSystem(0, 1, new Pair<>(names[1], false)),
                 new ServoSystem(0, 1, new Pair<>(names[2], true), new Pair<String, Boolean>("placerLeft" , false)),
                 new ServoSystem(0, 1, new Pair<>(names[3], false), new Pair<String, Boolean>("armLeft"    , true)),
-                new ServoSystem(0, 1, new Pair<>(names[4], false), new Pair<String, Boolean>("grabberLeft", false))
+                new ServoSystem(0, 1, new Pair<>(names[4], false), new Pair<String, Boolean>("grabberLeft", true))
         };
 
         int i = 0;

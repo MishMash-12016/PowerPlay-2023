@@ -5,8 +5,8 @@ import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
@@ -19,97 +19,102 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
-import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
-import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
+import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
+import org.openftc.easyopencv.OpenCvPipeline;
 
 class elevatorPositions{
-    public static int high   = 20500;
+    public static int high   = 19000;
     public static int middle = 12000;
     public static int low    = 5000 ;
     public static int bottom = 0    ;
 }
 
+class RobotController {
 
-class DriveController {
+    private ElapsedTime et = new ElapsedTime();
     /** GENERAL CONSTANTS */
     private final double sq2 = Math.sqrt(2);
+    private final Telemetry telemetry;
+
+    /** THREADS */
+    public final Thread elevatorController;
+    public final Thread driveController;
+    public final Thread cycleController;
+
+    private final Thread teleScore;
+    public final Thread autoCycle;
 
     /** SERVO CONSTANTS */
-    private final double grabberMiddle = 0.08;
-    public final double grabberIn  = 0.94;
+    private final double grabberMiddle = 0.26;
+    public final double grabberIn  = 0.09;
 
     //                                  low > > > > > > > > > > > high
-    public final double[] grabberPile = {0.27, 0.32, 0.36, 0.40, 0.43};
+    public final double[] grabberPile = {0.77, 0.73, 0.7, 0.66, 0.62};
 
     private final double armOut = 0.89; // hiTech value 0.61;
     private final double armIn  = 0.5;  // hiTech value 0.41;
 
-    private final double placerIn  = 0.01;
+    private final double placerIn  = 0;
 
     private final double placerOutAutonomous = 0.76;
-    private final double placerOutTeleOp = 0.85;
+    private final double placerOutTeleOp = 0.76;//0.85;
 
-    private final double pufferGrab    = 0.18;
-    private final double pufferRelease = 0.018;
+    private final double pufferGrab    = 0.14;
+    private final double pufferRelease = 0;
 
-    private final double grabberGrab = 0.775;
-    private final double grabberOpen = 0.45 ;
+    private final double grabberGrab = 0.61;
+    private final double grabberOpen = 0.36;
 
     /** SENSOR CONSTANTS */
     private final double grabberCatchTrigger = 8.5;
 
     /** SENSORS */
-    public final BNO055IMU imu;
+    private final BNO055IMU imu;
     private final DistanceSensor grabberSensor;
-    TouchSensor armSensor;
-
-    /** TIME KEEPING VARIABLES */
-    final private ElapsedTime armTime;
-    final private ElapsedTime elevatorTime;
+    private final DigitalChannel armSensor;
+    //private final TouchSensor elevatorSensor;
 
     /** SERVOS */
-    final private Servo puffer ;
-    final private Servo grabber;
+    private final Servo puffer ;
+    private final Servo grabber;
 
-    final private Servo placerRight;
-    final private Servo placerLeft ;
+    private final Servo placerRight;
+    private final Servo placerLeft ;
 
-    final private Servo armRight;
-    final private Servo armLeft ;
+    private final Servo armRight;
+    private final Servo armLeft ;
 
-    final public Servo grabberRight;
-    final public Servo grabberLeft ;
+    private final Servo grabberRight;
+    private final Servo grabberLeft ;
 
     /** DRIVING MOTORS */
-    final private DcMotor frontRight;
-    final private DcMotor frontLeft ;
-    final private DcMotor backRight ;
-    final private DcMotor backLeft  ;
+    private final DcMotor frontRight;
+    private final DcMotor frontLeft ;
+    private final DcMotor backRight ;
+    private final DcMotor backLeft  ;
 
     /** DRIVING STATE KEEPERS */
-    private double frontRightPower;
-    private double frontLeftPower ;
-    private double backRightPower ;
-    private double backLeftPower  ;
-
     public double overallDrivingPower;
 
     /** ELEVATOR MOTORS */
-    final private DcMotorEx elevatorLeft ;
-    final private DcMotorEx elevatorRight;
+    private final DcMotorEx elevatorLeft ;
+    private final DcMotorEx elevatorRight;
 
     /** ELEVATOR STATE KEEPERS */
-    private int elevatorPosition;
-    private double elevatorPower;
-    private boolean stopElevator;
+    int elevatorPosition;
+    double elevatorPower;
+
+    /** DRIVE CONTROLLER */
+    Vector joystick_left;
+    double A, B;
 
 
-    public DriveController(HardwareMap hm) {
-        /** TIME KEEPING VARIABLES */
-        // initialize the time keeping variables
-        armTime      = new ElapsedTime();
-        elevatorTime = new ElapsedTime();
-
+    public RobotController(HardwareMap hm, Telemetry t) {
+        this.telemetry = t;
         /** SENSORS */
         // getting the imu from the hardware map
         imu = hm.get(BNO055IMU.class, "imu");
@@ -128,7 +133,10 @@ class DriveController {
         // getting the grabber sensor
         grabberSensor = hm.get(DistanceSensor.class, "grabberSensor");
         // getting the arm sensor
-        armSensor = hm.get(TouchSensor.class, "armSensor");
+        //armSensor = hm.get(TouchSensor.class, "armSensor");
+        armSensor = hm.get(DigitalChannel.class, "armSensor");
+        armSensor.setMode(DigitalChannel.Mode.INPUT);
+        //elevatorSensor = hm.get(TouchSensor.class, "elevatorSensor");
 
         /** SERVOS */
         // getting the edge units
@@ -151,8 +159,9 @@ class DriveController {
         grabberLeft  = hm.servo.get("grabberLeft" );
 
         // flipping the relevant servos direction
-        armLeft     .setDirection(Servo.Direction.REVERSE);
-        placerRight .setDirection(Servo.Direction.REVERSE);
+        armLeft    .setDirection(Servo.Direction.REVERSE);
+        placerRight.setDirection(Servo.Direction.REVERSE);
+        grabberLeft.setDirection(Servo.Direction.REVERSE);
 
         // setting the servos position to their initial positions
         setArmPosition(armIn);
@@ -171,12 +180,6 @@ class DriveController {
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft .setDirection(DcMotorSimple.Direction.REVERSE);
 
-        // setting the default driving state
-        frontRightPower = 0;
-        frontLeftPower  = 0;
-        backRightPower  = 0;
-        backLeftPower   = 0;
-
         overallDrivingPower = 1;
 
         // getting the elevator motors
@@ -190,208 +193,179 @@ class DriveController {
         elevatorLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         elevatorLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        // setting the default elevator state
-        elevatorPosition = 0;
-        elevatorPower    = 0;
-        stopElevator = false;
-    }
+        teleScore = new Thread(() -> {
+            if (elevatorPosition != elevatorPositions.bottom) {
+                try {
+                    puffer.setPosition(pufferGrab);
+                    grabber.setPosition(grabberOpen);
 
-    /** IN PROGRESS */
-    public void moveArm(double position, Telemetry t) {
-        // temporary
-        if (armTime.seconds() > 0.2 && armTime.seconds() < 0.8 && grabberSensor.getDistance(DistanceUnit.CM) < grabberCatchTrigger) {
-            setArmPosition(armIn);
-        } else if (armTime.seconds() > 0.8 || grabberSensor.getDistance(DistanceUnit.CM) > grabberCatchTrigger) {
-            if (position > 0) {
-                grabber.setPosition(grabberOpen);
-                setGrabberPosition(grabberPile[0]);
+                    safeSleep(200);
+
+                    setPlacerPosition(placerOutTeleOp);
+
+                    while (gamepad.right_trigger == 0) {
+                        if (gamepad.isStopRequested) {
+                            throw new InterruptedException("stop requested");
+                        }
+                        telemetry.addData("aaa", "aaa");
+                        telemetry.update();
+                    }
+
+                    puffer.setPosition(pufferRelease);
+
+                    while (gamepad.right_trigger > 0) {
+                        if (gamepad.isStopRequested) {
+                            throw new InterruptedException("stop requested");
+                        }
+                        telemetry.addData("aaa", "aaa");
+                        telemetry.update();
+                    }
+
+                    setPlacerPosition(placerIn);
+                    elevatorPosition = elevatorPositions.bottom;
+
+                } catch (InterruptedException e) {
+                }
             } else {
-                setGrabberPosition(grabberIn);
             }
-            setArmPosition(position * (armOut - armIn) + armIn);
-        }
+        });
 
-        if (grabberSensor.getDistance(DistanceUnit.CM) < grabberCatchTrigger && grabberLeft.getPosition() == grabberPile[0] && grabber.getPosition() == grabberOpen) {
-            grabber.setPosition(grabberGrab);
-            armTime.reset();
-        }
-    }
+        autoCycle = new Thread(() -> {
+            autoScore(true, 4);
+            for (int i = 4; i > 0; i--){
+                collect(i);
+                autoScore(true, i - 1);
+            }
 
-    public void setElevatorPosition(int position) {
-        if (position == elevatorPositions.bottom && elevatorPosition != position) {
-            puffer.setPosition(pufferRelease);
-            setPlacerPosition(placerIn);
-        } else if (position != elevatorPositions.bottom && elevatorPosition == elevatorPositions.bottom) {
-            puffer.setPosition(pufferGrab);
-            grabber.setPosition(grabberOpen);
+            collect(0);
+            autoScore(false, 0);
+        });
 
-            elevatorTime.reset();
-            stopElevator = true;
-        }
-        elevatorPosition = position;
-    }
 
-    public void scoreCone() {
-        puffer.setPosition(pufferRelease);
-    }
+        cycleController = new Thread(() -> {
+            gamepad.isCycleControllerActive = true;
+            while (gamepad.isCycleControllerActive) {
+                if (gamepad.left_trigger > 0 || gamepad.left_bumper) {
 
-    public void update() {
-        // getting the biggest of the driving powers
-        double biggest = Math.max(
-                Math.max
-                        (
-                                Math.abs(this.frontRightPower),
-                                Math.abs(this.backRightPower)
-                        ),
-                Math.max
-                        (
-                                Math.abs(this.frontLeftPower),
-                                Math.abs(this.backLeftPower)
-                        )
-        );
+                    // bring the grabber down
+                    setGrabberPosition(grabberPile[0]);
 
-        // normalizing the powers to be at most 1
-        if (biggest > 1) {
-            this.frontRightPower /= biggest;
-            this.backRightPower  /= biggest;
-            this.frontLeftPower  /= biggest;
-            this.backLeftPower   /= biggest;
-        }
+                    // bring the grabber out the correct amount
+                    setArmPosition(gamepad.left_trigger * (armOut - armIn) + armIn);
 
-        // set the driving powers into the driving motors with consideration of the overall driving power
-        this.frontRight.setPower(this.frontRightPower * overallDrivingPower);
-        this.frontLeft .setPower(this.frontLeftPower  * overallDrivingPower);
-        this.backRight .setPower(this.backRightPower  * overallDrivingPower);
-        this.backLeft  .setPower(this.backLeftPower   * overallDrivingPower);
+                    // catch the cone if its in range
+                    if (grabberSensor.getDistance(DistanceUnit.CM) < grabberCatchTrigger) {
+                        grabber.setPosition(grabberGrab);
+                    } else {
+                        grabber.setPosition(grabberOpen);
+                    }
 
-        // change the elevator power if the elevator is not paused
-        if (!stopElevator) elevatorPower = Math.max(Math.min((elevatorPosition - elevatorLeft.getCurrentPosition()) / 2300.0, 1), -1);
+                } else {
+                    if (!armSensor.getState()) {
+                        setGrabberPosition(grabberIn);
+                    } else {
+                        setArmPosition(armIn);
+                    }
 
-        // make the elevator weaker when coming down to compensate for gravity
-        if (elevatorPower < 0) elevatorPower /= 2;
+                }
 
-        // set the elevator power into the elevator motors
-        this.elevatorLeft.setPower(elevatorPower);
-        this.elevatorRight.setPower(elevatorPower);
+                if (A_pressed()) {
+                    elevatorPosition = elevatorPositions.high;
+                    if (!teleScore.isAlive()) teleScore.start();
+                } else if (X_pressed()) {
+                    elevatorPosition = elevatorPositions.middle;
+                    if (!teleScore.isAlive()) teleScore.start();
+                } else if (Y_pressed()) {
+                    elevatorPosition = elevatorPositions.low;
+                    if (!teleScore.isAlive()) teleScore.start();
+                }
+            }
+        });
 
-        // reset the motors power to avoid accidents
-        frontRightPower = 0;
-        frontLeftPower  = 0;
-        backRightPower  = 0;
-        backLeftPower   = 0;
-
-        overallDrivingPower = 1;
-
+        elevatorPosition = elevatorPositions.bottom;
         elevatorPower = 0;
+        elevatorController = new Thread(() -> {
+            gamepad.isElevatorControllerActive = true;
+            while (gamepad.isElevatorControllerActive){
+                elevatorPower = Math.max(Math.min((elevatorPosition - elevatorLeft.getCurrentPosition()) / 2300.0, 1), -1);
 
-        // temporary
-        if (elevatorTime.seconds() < 1 && elevatorTime.seconds() > 0.3) {
-            if (elevatorPosition / 2 < elevatorLeft.getCurrentPosition() && elevatorLeft.getCurrentPosition() < elevatorPosition) {
-                setPlacerPosition(placerOutTeleOp);
+                // make the elevator weaker when coming down to compensate for gravity
+                if (elevatorPower < 0) elevatorPower /= 2;
+
+                // set the elevator power into the elevator motors
+                elevatorLeft .setPower(elevatorPower);
+                elevatorRight.setPower(elevatorPower);
             }
-            stopElevator = false;
-        }
-    }
+        });
 
-    public void cycle() {
-        score(4);
-        for (int i = 4; i > 0; i--){
-            collect(i);
-            score(i - 1);
-        }
+        joystick_left = new Vector(0, 0);
+        driveController = new Thread(() ->{
+            gamepad.isDriveControllerActive = true;
+            while(gamepad.isDriveControllerActive) {
+                joystick_left.x = gamepad.left_stick_x;
+                joystick_left.y = -gamepad.left_stick_y;
 
-        score();
-    }
+                // make the bot field oriented while considering the starting angle
+                joystick_left.addAngle(-getRobotAngle() - AutonomousLeft.lastAngle);
 
-    public void elevatorController(){
-        while (true){
-            elevatorPower = Math.max(Math.min((elevatorPosition - elevatorLeft.getCurrentPosition()) / 2300.0, 1), -1);
 
-            // make the elevator weaker when coming down to compensate for gravity
-            if (elevatorPower < 0) elevatorPower /= 2;
+                // using my equations to calculate the power ratios
+                A = (joystick_left.y - joystick_left.x) / sq2;
+                B = (joystick_left.y + joystick_left.x) / sq2;
 
-            // set the elevator power into the elevator motors
-            this.elevatorLeft.setPower(elevatorPower);
-            this.elevatorRight.setPower(elevatorPower);
-        }
-    }
-
-    public void score(int nextConeNum) { score(true, nextConeNum); }
-    public void score() { score(false, 0); }
-
-    public void score(boolean prepareForNext, int nextConeNum){
-        try {
-            if (grabber.getPosition() != grabberOpen){
-                grabber.setPosition(grabberOpen);
-                Thread.sleep(750);
+                // slow mode;
+                if (grabberLeft.getPosition() == grabberPile[0] ||
+                    elevatorPosition != elevatorPositions.bottom ||
+                    gamepad.right_bumper) {
+                    overallDrivingPower = 0.4;
+                } else {
+                    overallDrivingPower = 1;
+                }
+                // setting the powers in consideration of the turning speed
+                setDrivingPower(A - gamepad.right_stick_x,
+                        B + gamepad.right_stick_x,
+                        B - gamepad.right_stick_x,
+                        A + gamepad.right_stick_x);
             }
-            puffer.setPosition(pufferGrab);
-            elevatorPosition = elevatorPositions.high;
-
-            Thread.sleep(750);
-
-            setPlacerPosition(placerOutAutonomous);
-
-            if (prepareForNext) {
-                setGrabberPosition(grabberPile[nextConeNum]);
-
-                setArmPosition(armOut * 0.8);
-            }
-
-            Thread.sleep(750);
-
-            puffer.setPosition(pufferRelease);
-
-            Thread.sleep(750);
-
-            puffer.setPosition(pufferRelease);
-            setPlacerPosition(placerIn);
-            elevatorPosition = elevatorPositions.bottom;
-        }catch (InterruptedException e){}
-
+        });
     }
 
-    public void collect(int coneNum){
-        try {
-            setGrabberPosition(grabberPile[coneNum]);
-            Thread.sleep((int)(500 / (grabberIn - grabberPile[0]) * Math.abs(grabberPile[coneNum] - grabberLeft.getPosition())));
-
-            setArmPosition(armOut);
-
-            while (grabberSensor.getDistance(DistanceUnit.CM) < 6) {}
-
-            Thread.sleep(750);
-
-            grabber.setPosition(grabberGrab);
-
-            Thread.sleep(1500);
-
-            setGrabberPosition(grabberMiddle);
-
-            Thread.sleep(750);
-
-            setArmPosition(armIn);
-
-            while (!armSensor.isPressed()) {
-            }
-
-            Thread.sleep(750);
-
-            setGrabberPosition(grabberIn);
-
-            Thread.sleep(750); // replacing the sensor for now
-        }catch (InterruptedException e){}
+    public void safeSleep(int millisecond) throws InterruptedException {
+        et.reset();
+        while (et.milliseconds() < millisecond){if (gamepad.isStopRequested) throw new InterruptedException("stop requested");}
     }
 
+    private boolean a = true;
+    private boolean A_pressed(){
+        if (gamepad.a){
+            if(a){
+                a = false;
+                return true;
+            }
+        } else a = true;
+        return false;
+    }
 
-    /** DONE */
-    public void mecanumDrive(Vector direction, double turningSpeed) {
-        // using my equations to calculate the power ratios
-        double A = (direction.y - direction.x) / sq2;
-        double B = (direction.y + direction.x) / sq2;
+    private boolean x = true;
+    private boolean X_pressed(){
+        if (gamepad.x){
+            if(x){
+                x = false;
+                return true;
+            }
+        } else x = true;
+        return false;
+    }
 
-        // setting the powers in consideration of the turning speed
-        setDrivingPower(A - turningSpeed, B + turningSpeed, B - turningSpeed, A + turningSpeed);
+    private boolean y = true;
+    private boolean Y_pressed(){
+        if (gamepad.y){
+            if(y){
+                y = false;
+                return true;
+            }
+        } else y = true;
+        return false;
     }
 
     public double getRobotAngle() {
@@ -421,11 +395,105 @@ class DriveController {
     }
 
     public void setDrivingPower(double frontRightPower, double frontLeftPower, double backRightPower, double backLeftPower) {
-        this.frontRightPower = frontRightPower;
-        this.frontLeftPower  = frontLeftPower ;
-        this.backRightPower  = backRightPower ;
-        this.backLeftPower   = backLeftPower  ;
+        frontRight.setPower(frontRightPower * overallDrivingPower);
+        frontLeft .setPower(frontLeftPower  * overallDrivingPower);
+        backRight .setPower(backRightPower  * overallDrivingPower);
+        backLeft  .setPower(backLeftPower   * overallDrivingPower);
     }
+
+    public void autoScore(boolean prepareForNext, int nextConeNum){
+        try {
+            puffer.setPosition(pufferGrab);
+            if (grabber.getPosition() != grabberOpen){
+                grabber.setPosition(grabberOpen);
+                safeSleep(50);
+            }
+            elevatorPosition = elevatorPositions.high;
+
+            safeSleep(750);
+
+            setPlacerPosition(placerOutAutonomous);
+
+            if (prepareForNext) {
+                setGrabberPosition(grabberPile[nextConeNum]);
+
+                setArmPosition(armOut * 0.8);
+
+            }
+            safeSleep(400);
+
+            puffer.setPosition(pufferRelease);
+
+            safeSleep(400);
+
+            setPlacerPosition(placerIn);
+            elevatorPosition = elevatorPositions.bottom;
+        }catch (InterruptedException e){}
+
+    }
+
+    public void collect(int coneNum){
+        try {
+            setGrabberPosition(grabberPile[coneNum]);
+            safeSleep((int)(500 / (grabberIn - grabberPile[0]) * Math.abs(grabberPile[coneNum] - grabberLeft.getPosition())));
+
+            setArmPosition(armOut);
+
+            while (grabberSensor.getDistance(DistanceUnit.CM) < 6) {
+                if (gamepad.isStopRequested) throw new InterruptedException("stop requested");
+            }
+
+            grabber.setPosition(grabberGrab);
+
+            safeSleep(500);
+
+            setGrabberPosition(grabberMiddle);
+
+            safeSleep(500);
+
+            setArmPosition(armIn);
+
+            while (armSensor.getState()) {
+                if (gamepad.isStopRequested) throw new InterruptedException("stop requested");
+            }
+
+            setGrabberPosition(grabberIn);
+
+            safeSleep(500); // replacing the sensor for now
+        }catch (InterruptedException e){}
+    }
+
+    public void terminate(){
+        elevatorController.interrupt();
+        driveController.interrupt();
+        cycleController.interrupt();
+        teleScore.interrupt();
+        autoCycle.interrupt();
+
+        elevatorPosition = elevatorPositions.bottom;
+
+        gamepad.a = false;
+        gamepad.b = false;
+        gamepad.y = false;
+        gamepad.x = false;
+
+        gamepad.left_trigger = 0;
+        gamepad.right_trigger = 0;
+
+        gamepad.left_bumper = false;
+        gamepad.right_bumper = false;
+
+        gamepad.left_stick_y = 0;
+        gamepad.left_stick_x = 0;
+        gamepad.right_stick_x = 0;
+
+        gamepad.isDriveControllerActive = false;
+        gamepad.isElevatorControllerActive = false;
+        gamepad.isCycleControllerActive = false;
+
+
+    }
+
 }
 
 
@@ -433,40 +501,104 @@ class Vector {
     public double x;
     public double y;
 
-    public Vector(double x, double y){
+    public Vector(double x, double y) {
         this.x = x;
         this.y = y;
     }
 
-    public double getAngle(){
+    public double getAngle() {
         double a = Math.PI * 2;
         if (y < 0) a += Math.PI + Math.atan(-x / y);
-        else if (y == 0){
+        else if (y == 0) {
             if (x < 0) a += Math.PI * 0.5;
-            else       a += Math.PI * 1.5;
-        }else{
+            else a += Math.PI * 1.5;
+        } else {
             a += Math.atan(-x / y);
         }
         a = Math.PI * 2 - a % (Math.PI * 2);
 
         return a;
     }
-    public double getLength(){
+
+    public double getLength() {
         return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
     }
 
-    public void setAngle(double a){
+    public void setAngle(double a) {
         double l = this.getLength();
         this.x = Math.sin(a) * l;
         this.y = Math.cos(a) * l;
     }
-    public void setLength(double r){
+
+    public void setLength(double r) {
         double a = this.getAngle();
         this.x = Math.sin(a) * r;
         this.y = Math.cos(a) * r;
     }
 
-    public void addAngle(double angle){
+    public void addAngle(double angle) {
         this.setAngle(this.getAngle() + angle);
+    }
+}
+
+
+class PipeLine extends OpenCvPipeline {
+    // the part of the image with the cone
+    private Mat small;
+
+    // the converted small image (rgb -> YCrCb)
+    private final Mat YCrCbImage = new Mat();
+
+    // the Cr and Cb channels of the YCrCbImage
+    private final Mat RedChannel  = new Mat();
+    private final Mat BlueChannel = new Mat();
+
+    // the threshold bounded Cr and Cb channels
+    private final Mat ThresholdRedImage  = new Mat();
+    private final Mat ThresholdBlueImage = new Mat();
+
+    // the part of the input image with the cone
+    private final Rect coneWindow = new Rect(120, 112, 70, 85);
+
+    // for the visual indicator
+    private final Rect coneWindowOutLine = new Rect(
+            0,
+            0,
+            coneWindow.width,
+            coneWindow.height
+    );
+
+    // the color threshold
+    private final Scalar thresholdMin = new Scalar(160, 160, 160);
+    private final Scalar thresholdMax = new Scalar(255, 255, 255);
+
+    @Override
+    public Mat processFrame(Mat input){
+        // get the part of the input image with the cone
+        small = input.submat(coneWindow);
+
+        // convert the small image (rgb -> YCrCb)
+        Imgproc.cvtColor(small, YCrCbImage, Imgproc.COLOR_RGB2YCrCb);
+
+        // get the Cr and Cb channels of the YCrCbImage
+        Core.extractChannel(YCrCbImage, RedChannel , 1);
+        Core.extractChannel(YCrCbImage, BlueChannel, 2);
+
+        // threshold the Cr and Cb channels
+        Core.inRange(RedChannel , thresholdMin, thresholdMax, ThresholdRedImage );
+        Core.inRange(BlueChannel, thresholdMin, thresholdMax, ThresholdBlueImage);
+
+        // count the red and blue pixels and place them into the red and blue fields from AutonomousDrive
+        AutonomousLeft.red  = Core.mean(ThresholdRedImage ).val[0];
+        AutonomousLeft.blue = Core.mean(ThresholdBlueImage).val[0];
+
+        // visual que
+        if      (AutonomousLeft.red  > 45) Imgproc.rectangle(small, coneWindowOutLine, new Scalar(255, 0  , 0  ), 2);
+        else if (AutonomousLeft.blue > 45) Imgproc.rectangle(small, coneWindowOutLine, new Scalar(0  , 0  , 255), 2);
+        else                                Imgproc.rectangle(small, coneWindowOutLine, new Scalar(255, 255, 255), 2);
+
+
+        // show the small image
+        return small;
     }
 }
