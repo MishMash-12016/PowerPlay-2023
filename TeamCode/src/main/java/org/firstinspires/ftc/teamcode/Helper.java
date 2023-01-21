@@ -55,7 +55,7 @@ class RobotController {
     public final double grabberIn  = 0.09;
 
     //                                  low > > > > > > > > > > > high
-    public final double[] grabberPile = {0.76, 0.72, 0.69, 0.65, 0.61};
+    public final double[] grabberPile = {0.75, 0.72, 0.69, 0.65, 0.61};
 
     private final double armOut = 0.89; // hiTech value 0.61;
     private final double armIn  = 0.5;  // hiTech value 0.41;
