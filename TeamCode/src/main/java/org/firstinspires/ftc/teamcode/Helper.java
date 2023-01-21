@@ -27,7 +27,7 @@ import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
 
 class elevatorPositions{
-    public static int high   = 19000;
+    public static int high   = 19500;
     public static int middle = 12000;
     public static int low    = 5000 ;
     public static int bottom = 0    ;
@@ -36,6 +36,8 @@ class elevatorPositions{
 class RobotController {
 
     private ElapsedTime et = new ElapsedTime();
+    private ElapsedTime grabberSafety = new ElapsedTime();
+    private ElapsedTime pufferSafety = new ElapsedTime();
     /** GENERAL CONSTANTS */
     private final double sq2 = Math.sqrt(2);
     private final Telemetry telemetry;
@@ -53,15 +55,13 @@ class RobotController {
     public final double grabberIn  = 0.09;
 
     //                                  low > > > > > > > > > > > high
-    public final double[] grabberPile = {0.77, 0.73, 0.7, 0.66, 0.62};
+    public final double[] grabberPile = {0.76, 0.72, 0.69, 0.65, 0.61};
 
     private final double armOut = 0.89; // hiTech value 0.61;
     private final double armIn  = 0.5;  // hiTech value 0.41;
 
     private final double placerIn  = 0;
-
-    private final double placerOutAutonomous = 0.76;
-    private final double placerOutTeleOp = 0.76;//0.85;
+    private final double placerOut = 0.75;// 0.78
 
     private final double pufferGrab    = 0.14;
     private final double pufferRelease = 0;
@@ -99,6 +99,7 @@ class RobotController {
 
     /** DRIVING STATE KEEPERS */
     public double overallDrivingPower;
+    public double overallTurningPower;
 
     /** ELEVATOR MOTORS */
     private final DcMotorEx elevatorLeft ;
@@ -110,7 +111,8 @@ class RobotController {
 
     /** DRIVE CONTROLLER */
     Vector joystick_left;
-    double A, B;
+    double DrivingPowerA, DrivingPowerB;
+    double turningPower;
 
 
     public RobotController(HardwareMap hm, Telemetry t) {
@@ -181,6 +183,7 @@ class RobotController {
         backLeft .setDirection(DcMotorSimple.Direction.REVERSE);
 
         overallDrivingPower = 1;
+        overallTurningPower = 1;
 
         // getting the elevator motors
         elevatorLeft  = (DcMotorEx) hm.dcMotor.get("elevatorLeft" );
@@ -199,9 +202,13 @@ class RobotController {
                     puffer.setPosition(pufferGrab);
                     grabber.setPosition(grabberOpen);
 
-                    safeSleep(200);
+                    while(elevatorPosition - elevatorLeft.getCurrentPosition() > 10000){
+                        if (gamepad.isStopRequested){
+                            throw new InterruptedException("stop requested");
+                        }
+                    }
 
-                    setPlacerPosition(placerOutTeleOp);
+                    setPlacerPosition(placerOut);
 
                     while (gamepad.right_trigger == 0) {
                         if (gamepad.isStopRequested) {
@@ -254,19 +261,26 @@ class RobotController {
                     setArmPosition(gamepad.left_trigger * (armOut - armIn) + armIn);
 
                     // catch the cone if its in range
-                    if (grabberSensor.getDistance(DistanceUnit.CM) < grabberCatchTrigger) {
+                    if (grabberSensor.getDistance(DistanceUnit.CM) < grabberCatchTrigger && grabberSafety.milliseconds() > 500) {
                         grabber.setPosition(grabberGrab);
                     } else {
                         grabber.setPosition(grabberOpen);
                     }
-
+                    pufferSafety.reset();
+                    if (!teleScore.isAlive()){
+                        puffer.setPosition(pufferRelease);
+                    }
                 } else {
                     if (!armSensor.getState()) {
                         setGrabberPosition(grabberIn);
                     } else {
                         setArmPosition(armIn);
                     }
-
+                    grabberSafety.reset();
+                    if (puffer.getPosition() != pufferGrab && pufferSafety.milliseconds() > 1000 && !teleScore.isAlive()){
+                        puffer.setPosition(pufferGrab);
+                        grabber.setPosition(grabberOpen);
+                    }
                 }
 
                 if (A_pressed()) {
@@ -310,29 +324,33 @@ class RobotController {
 
 
                 // using my equations to calculate the power ratios
-                A = (joystick_left.y - joystick_left.x) / sq2;
-                B = (joystick_left.y + joystick_left.x) / sq2;
+                DrivingPowerA = (joystick_left.y - joystick_left.x) / sq2 * overallDrivingPower;
+                DrivingPowerB = (joystick_left.y + joystick_left.x) / sq2 * overallDrivingPower;
+
+                turningPower = gamepad.right_stick_x * overallTurningPower;
 
                 // slow mode;
                 if (grabberLeft.getPosition() == grabberPile[0] ||
                     elevatorPosition != elevatorPositions.bottom ||
                     gamepad.right_bumper) {
                     overallDrivingPower = 0.4;
+                    overallTurningPower = 0.2;
                 } else {
                     overallDrivingPower = 1;
+                    overallTurningPower = 1;
                 }
                 // setting the powers in consideration of the turning speed
-                setDrivingPower(A - gamepad.right_stick_x,
-                        B + gamepad.right_stick_x,
-                        B - gamepad.right_stick_x,
-                        A + gamepad.right_stick_x);
+                setDrivingPower(DrivingPowerA - turningPower,
+                                 DrivingPowerB + turningPower,
+                                DrivingPowerB - turningPower,
+                                 DrivingPowerA + turningPower);
             }
         });
     }
 
     public void safeSleep(int millisecond) throws InterruptedException {
         et.reset();
-        while (et.milliseconds() < millisecond){if (gamepad.isStopRequested) throw new InterruptedException("stop requested");}
+        while (et.milliseconds() < millisecond){ if (gamepad.isStopRequested) throw new InterruptedException("stop requested"); }
     }
 
     private boolean a = true;
@@ -395,10 +413,10 @@ class RobotController {
     }
 
     public void setDrivingPower(double frontRightPower, double frontLeftPower, double backRightPower, double backLeftPower) {
-        frontRight.setPower(frontRightPower * overallDrivingPower);
-        frontLeft .setPower(frontLeftPower  * overallDrivingPower);
-        backRight .setPower(backRightPower  * overallDrivingPower);
-        backLeft  .setPower(backLeftPower   * overallDrivingPower);
+        frontRight.setPower(frontRightPower);
+        frontLeft .setPower(frontLeftPower );
+        backRight .setPower(backRightPower );
+        backLeft  .setPower(backLeftPower  );
     }
 
     public void autoScore(boolean prepareForNext, int nextConeNum){
@@ -406,13 +424,13 @@ class RobotController {
             puffer.setPosition(pufferGrab);
             if (grabber.getPosition() != grabberOpen){
                 grabber.setPosition(grabberOpen);
-                safeSleep(50);
+                safeSleep(100);
             }
             elevatorPosition = elevatorPositions.high;
 
             safeSleep(750);
 
-            setPlacerPosition(placerOutAutonomous);
+            setPlacerPosition(placerOut);
 
             if (prepareForNext) {
                 setGrabberPosition(grabberPile[nextConeNum]);
@@ -420,7 +438,7 @@ class RobotController {
                 setArmPosition(armOut * 0.8);
 
             }
-            safeSleep(400);
+            safeSleep(500);
 
             puffer.setPosition(pufferRelease);
 
@@ -439,13 +457,15 @@ class RobotController {
 
             setArmPosition(armOut);
 
-            while (grabberSensor.getDistance(DistanceUnit.CM) < 6) {
-                if (gamepad.isStopRequested) throw new InterruptedException("stop requested");
-            }
+            safeSleep(400);
+
+//            while (grabberSensor.getDistance(DistanceUnit.CM) < grabberCatchTrigger) {
+//                if (gamepad.isStopRequested) throw new InterruptedException("stop requested");
+//            }
 
             grabber.setPosition(grabberGrab);
 
-            safeSleep(500);
+            safeSleep(400);
 
             setGrabberPosition(grabberMiddle);
 
@@ -459,7 +479,7 @@ class RobotController {
 
             setGrabberPosition(grabberIn);
 
-            safeSleep(500); // replacing the sensor for now
+            safeSleep(300); // replacing the sensor for now
         }catch (InterruptedException e){}
     }
 
@@ -543,6 +563,9 @@ class Vector {
 
 
 class PipeLine extends OpenCvPipeline {
+
+    public static int parkingPosition = 0;
+
     // the part of the image with the cone
     private Mat small;
 
@@ -558,19 +581,30 @@ class PipeLine extends OpenCvPipeline {
     private final Mat ThresholdBlueImage = new Mat();
 
     // the part of the input image with the cone
-    private final Rect coneWindow = new Rect(120, 112, 70, 85);
+    private final Rect coneWindowRight = new Rect(267, 128, 43, 73);
+    private final Rect coneWindowLeft  = new Rect(35 , 124, 43, 73);
+    private Rect coneWindow;
 
     // for the visual indicator
-    private final Rect coneWindowOutLine = new Rect(
-            0,
-            0,
-            coneWindow.width,
-            coneWindow.height
-    );
+    private final Rect coneWindowOutLine;
 
     // the color threshold
     private final Scalar thresholdMin = new Scalar(160, 160, 160);
     private final Scalar thresholdMax = new Scalar(255, 255, 255);
+
+    public PipeLine(Boolean isRight){
+        if (isRight) {
+            coneWindow = coneWindowRight;
+        } else {
+            coneWindow = coneWindowLeft;
+        }
+        coneWindowOutLine = new Rect(
+                0,
+                0,
+                coneWindow.width,
+                coneWindow.height
+        );
+    }
 
     @Override
     public Mat processFrame(Mat input){
@@ -588,17 +622,28 @@ class PipeLine extends OpenCvPipeline {
         Core.inRange(RedChannel , thresholdMin, thresholdMax, ThresholdRedImage );
         Core.inRange(BlueChannel, thresholdMin, thresholdMax, ThresholdBlueImage);
 
-        // count the red and blue pixels and place them into the red and blue fields from AutonomousDrive
-        AutonomousLeft.red  = Core.mean(ThresholdRedImage ).val[0];
-        AutonomousLeft.blue = Core.mean(ThresholdBlueImage).val[0];
 
-        // visual que
-        if      (AutonomousLeft.red  > 45) Imgproc.rectangle(small, coneWindowOutLine, new Scalar(255, 0  , 0  ), 2);
-        else if (AutonomousLeft.blue > 45) Imgproc.rectangle(small, coneWindowOutLine, new Scalar(0  , 0  , 255), 2);
-        else                                Imgproc.rectangle(small, coneWindowOutLine, new Scalar(255, 255, 255), 2);
+        if (Core.mean(ThresholdRedImage ).val[0] > 45){// red
 
+            parkingPosition = 2;
+            // visual signal
+            Imgproc.rectangle(small, coneWindowOutLine, new Scalar(255, 0  , 0  ), 2);
 
-        // show the small image
-        return small;
+        } else if (Core.mean(ThresholdBlueImage).val[0] > 45){// blue
+
+            parkingPosition = 1;
+            // visual signal
+            Imgproc.rectangle(small, coneWindowOutLine, new Scalar(0  , 0  , 255), 2);
+
+        } else {// white
+
+            parkingPosition = 0;
+            // visual signal
+            Imgproc.rectangle(small, coneWindowOutLine, new Scalar(255, 255, 255), 2);
+
+        }
+
+        // show the image
+        return input;
     }
 }
