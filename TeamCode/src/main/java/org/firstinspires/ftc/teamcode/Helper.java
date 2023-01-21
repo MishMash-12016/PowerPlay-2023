@@ -75,7 +75,7 @@ class RobotController {
     private final BNO055IMU imu;
     private final DistanceSensor grabberDistanceSensor;
     private final DigitalChannel armSensor;
-    private final DigitalChannel elevatorSensor;
+    //private final DigitalChannel elevatorSensor;
     private final DigitalChannel grabberPositionSensor;
 
     /** SERVOS */
@@ -138,8 +138,8 @@ class RobotController {
         armSensor = hm.get(DigitalChannel.class, "armSensor");
         armSensor.setMode(DigitalChannel.Mode.INPUT);
 
-        elevatorSensor = hm.get(DigitalChannel.class, "elevatorSensor");
-        elevatorSensor.setMode(DigitalChannel.Mode.INPUT);
+        //elevatorSensor = hm.get(DigitalChannel.class, "elevatorSensor");
+        //elevatorSensor.setMode(DigitalChannel.Mode.INPUT);
 
         grabberPositionSensor = hm.get(DigitalChannel.class, "grabberPositionSensor");
         grabberPositionSensor.setMode(DigitalChannel.Mode.INPUT);
