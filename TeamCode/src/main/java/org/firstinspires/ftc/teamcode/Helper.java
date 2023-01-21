@@ -62,6 +62,7 @@ class RobotController {
 
     private final double placerIn  = 0;
     private final double placerOut = 0.75;// 0.78
+    private double autoPlacerOut;
 
     private final double pufferGrab    = 0.14;
     private final double pufferRelease = 0;
@@ -114,8 +115,13 @@ class RobotController {
     double DrivingPowerA, DrivingPowerB;
     double turningPower;
 
+    public RobotController(HardwareMap hm, Telemetry t, boolean isRight) {
+        if (isRight){
+            autoPlacerOut = 0.75;
+        } else {
+            autoPlacerOut = 0.78;
+        }
 
-    public RobotController(HardwareMap hm, Telemetry t) {
         this.telemetry = t;
         /** SENSORS */
         // getting the imu from the hardware map
@@ -430,7 +436,7 @@ class RobotController {
 
             safeSleep(750);
 
-            setPlacerPosition(placerOut);
+            setPlacerPosition(autoPlacerOut);
 
             if (prepareForNext) {
                 setGrabberPosition(grabberPile[nextConeNum]);

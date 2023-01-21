@@ -46,16 +46,16 @@ public class AutonomousRight extends LinearOpMode {
         });
 
         // initialize the driveController (we do that after initializing the camera in order to enable "camera stream" in the drive controller)
-        RobotController robotController = new RobotController(hardwareMap, telemetry);
+        RobotController robotController = new RobotController(hardwareMap, telemetry, true);
         drive = new SampleMecanumDrive(hardwareMap);
 
         Pose2d startPose = new Pose2d(-30.7, 61.4, Math.toRadians(-90));
         Pose2d scoringPose = new Pose2d(-37, 2.25, Math.toRadians(-15));
 
-        Pose2d parking1 = new Pose2d(-61  , 33, Math.toRadians(-90));
+        Pose2d parking1 = new Pose2d(-12.5, 33, Math.toRadians(-90));
         Pose2d parking2_1 = new Pose2d(-36, 20, Math.toRadians(-90));
         Pose2d parking2_2 = new Pose2d(-36, 33, Math.toRadians(-90));
-        Pose2d parking3 = new Pose2d(-13.8, 33, Math.toRadians(-90));
+        Pose2d parking3 = new Pose2d(-61  , 33, Math.toRadians(-90));
 
         TrajectorySequence startToScore = drive.trajectorySequenceBuilder(startPose)
                 .splineToConstantHeading(new Vector2d(-35, 58), Math.toRadians(-95))
@@ -118,7 +118,7 @@ public class AutonomousRight extends LinearOpMode {
             switch (PipeLine.parkingPosition) {
                 case 0: {
                     follow(scoringToParking2);
-                    follow(scoringToParking3);
+                    follow(scoringToParking1);
                     break;
                 }
                 case 1: {
@@ -127,7 +127,7 @@ public class AutonomousRight extends LinearOpMode {
                 }
                 case 2: {
                     follow(scoringToParking2);
-                    follow(scoringToParking1);
+                    follow(scoringToParking3);
                     break;
                 }
             }

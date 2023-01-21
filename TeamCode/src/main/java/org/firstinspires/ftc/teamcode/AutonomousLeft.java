@@ -46,7 +46,7 @@ public class AutonomousLeft extends LinearOpMode {
         });
 
         // initialize the driveController (we do that after initializing the camera in order to enable "camera stream" in the drive controller)
-        RobotController robotController = new RobotController(hardwareMap, telemetry);
+        RobotController robotController = new RobotController(hardwareMap, telemetry, false);
         drive = new SampleMecanumDrive(hardwareMap);
 
         Pose2d startPose = new Pose2d(30.7, 61.4, Math.toRadians(-90));

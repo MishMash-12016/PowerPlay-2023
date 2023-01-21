@@ -8,7 +8,7 @@ public class manualDrive extends LinearOpMode{
     @Override
     public void runOpMode() {
 
-        RobotController robotController = new RobotController(hardwareMap, telemetry);
+        RobotController robotController = new RobotController(hardwareMap, telemetry, true);
 
         waitForStart();
         if (isStopRequested()) return;
