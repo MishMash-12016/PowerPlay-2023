@@ -9,7 +9,6 @@ import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -74,9 +73,10 @@ class RobotController {
 
     /** SENSORS */
     private final BNO055IMU imu;
-    private final DistanceSensor grabberSensor;
+    private final DistanceSensor grabberDistanceSensor;
     private final DigitalChannel armSensor;
-    //private final TouchSensor elevatorSensor;
+    //private final DigitalChannel elevatorSensor;
+    private final DigitalChannel grabberPositionSensor;
 
     /** SERVOS */
     private final Servo puffer ;
@@ -133,12 +133,16 @@ class RobotController {
         imu.startAccelerationIntegration(new Position(), new Velocity(), 10);
 
         // getting the grabber sensor
-        grabberSensor = hm.get(DistanceSensor.class, "grabberSensor");
+        grabberDistanceSensor = hm.get(DistanceSensor.class, "grabberDistanceSensor");
         // getting the arm sensor
-        //armSensor = hm.get(TouchSensor.class, "armSensor");
         armSensor = hm.get(DigitalChannel.class, "armSensor");
         armSensor.setMode(DigitalChannel.Mode.INPUT);
-        //elevatorSensor = hm.get(TouchSensor.class, "elevatorSensor");
+
+        //elevatorSensor = hm.get(DigitalChannel.class, "elevatorSensor");
+        //elevatorSensor.setMode(DigitalChannel.Mode.INPUT);
+
+        grabberPositionSensor = hm.get(DigitalChannel.class, "grabberPositionSensor");
+        grabberPositionSensor.setMode(DigitalChannel.Mode.INPUT);
 
         /** SERVOS */
         // getting the edge units
@@ -261,7 +265,7 @@ class RobotController {
                     setArmPosition(gamepad.left_trigger * (armOut - armIn) + armIn);
 
                     // catch the cone if its in range
-                    if (grabberSensor.getDistance(DistanceUnit.CM) < grabberCatchTrigger && grabberSafety.milliseconds() > 500) {
+                    if (grabberDistanceSensor.getDistance(DistanceUnit.CM) < grabberCatchTrigger && grabberSafety.milliseconds() > 500) {
                         grabber.setPosition(grabberGrab);
                     } else {
                         grabber.setPosition(grabberOpen);
@@ -459,7 +463,7 @@ class RobotController {
 
             safeSleep(400);
 
-//            while (grabberSensor.getDistance(DistanceUnit.CM) < grabberCatchTrigger) {
+//            while (grabberDistanceSensor.getDistance(DistanceUnit.CM) < grabberCatchTrigger) {
 //                if (gamepad.isStopRequested) throw new InterruptedException("stop requested");
 //            }
 
@@ -479,7 +483,9 @@ class RobotController {
 
             setGrabberPosition(grabberIn);
 
-            safeSleep(300); // replacing the sensor for now
+            while (grabberPositionSensor.getState()){
+                if (gamepad.isStopRequested) throw new InterruptedException("stop requested");
+            }
         }catch (InterruptedException e){}
     }
 
