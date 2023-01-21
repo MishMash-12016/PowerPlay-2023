@@ -37,6 +37,7 @@ class RobotController {
     private ElapsedTime et = new ElapsedTime();
     private ElapsedTime grabberSafety = new ElapsedTime();
     private ElapsedTime pufferSafety = new ElapsedTime();
+    private ElapsedTime safety = new ElapsedTime();
     /** GENERAL CONSTANTS */
     private final double sq2 = Math.sqrt(2);
     private final Telemetry telemetry;
@@ -477,13 +478,15 @@ class RobotController {
 
             setArmPosition(armIn);
 
-            while (armSensor.getState()) {
+            safety.reset();
+            while (armSensor.getState() && safety.milliseconds() < 600) {
                 if (gamepad.isStopRequested) throw new InterruptedException("stop requested");
             }
 
             setGrabberPosition(grabberIn);
 
-            while (grabberPositionSensor.getState()){
+            safety.reset();
+            while (grabberPositionSensor.getState() && safety.milliseconds() < 500){
                 if (gamepad.isStopRequested) throw new InterruptedException("stop requested");
             }
         }catch (InterruptedException e){}
