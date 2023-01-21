@@ -14,9 +14,9 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
 
-import org.firstinspires.ftc.teamcode.myDependencies.PipeLine;
-import org.firstinspires.ftc.teamcode.myDependencies.RobotController;
-import org.firstinspires.ftc.teamcode.myDependencies.Gamepad;
+import org.firstinspires.ftc.teamcode.myDependencies.oldFiles.PipeLine;
+import org.firstinspires.ftc.teamcode.myDependencies.oldFiles.RobotController;
+import org.firstinspires.ftc.teamcode.myDependencies.oldFiles.Gamepad;
 
 @Autonomous
 public class AutonomousRight extends LinearOpMode {

@@ -2,8 +2,8 @@ package org.firstinspires.ftc.teamcode.opModes;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import org.firstinspires.ftc.teamcode.myDependencies.Gamepad;
-import org.firstinspires.ftc.teamcode.myDependencies.RobotController;
+import org.firstinspires.ftc.teamcode.myDependencies.oldFiles.Gamepad;
+import org.firstinspires.ftc.teamcode.myDependencies.oldFiles.RobotController;
 
 @TeleOp
 public class manualDrive extends LinearOpMode{
