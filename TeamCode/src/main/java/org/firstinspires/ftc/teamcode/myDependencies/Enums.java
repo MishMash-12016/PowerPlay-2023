@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.myDependencies;
 
-enum DrivingMode {
-
+public class Enums{
+    enum DrivingMode {}
+    enum ScoreState {}
+    enum CollectionState {}
+    enum LedColor {}
 }
