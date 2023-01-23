@@ -51,11 +51,11 @@ class RobotController {
     public final Thread autoCycle;
 
     /** SERVO CONSTANTS */
-    private final double grabberMiddle = 0.26;
-    public final double grabberIn  = 0.09;
+    private final double grabberMiddle = 0.2;
+    public final double grabberIn  = 0.026;
 
     //                                  low > > > > > > > > > > > high
-    public final double[] grabberPile = {0.75, 0.72, 0.69, 0.65, 0.61};
+    public final double[] grabberPile = {0.725, 0.68, 0.655, 0.62, 0.59};
 
     private final double armOut = 0.89; // hiTech value 0.61;
     private final double armIn  = 0.5;  // hiTech value 0.41;
@@ -591,14 +591,14 @@ class PipeLine extends OpenCvPipeline {
 
     // the part of the input image with the cone
     private final Rect coneWindowRight = new Rect(267, 128, 43, 73);
-    private final Rect coneWindowLeft  = new Rect(35 , 124, 43, 73);
+    private final Rect coneWindowLeft  = new Rect(35 , 127, 50, 73);
     private Rect coneWindow;
 
     // for the visual indicator
     private final Rect coneWindowOutLine;
 
     // the color threshold
-    private final Scalar thresholdMin = new Scalar(160, 160, 160);
+    private final Scalar thresholdMin = new Scalar(150, 150, 150);
     private final Scalar thresholdMax = new Scalar(255, 255, 255);
 
     public PipeLine(Boolean isRight){
@@ -634,7 +634,7 @@ class PipeLine extends OpenCvPipeline {
 
         if (Core.mean(ThresholdRedImage ).val[0] > 45){// red
 
-            parkingPosition = 2;
+            parkingPosition = 0;
             // visual signal
             Imgproc.rectangle(small, coneWindowOutLine, new Scalar(255, 0  , 0  ), 2);
 
@@ -646,7 +646,7 @@ class PipeLine extends OpenCvPipeline {
 
         } else {// white
 
-            parkingPosition = 0;
+            parkingPosition = 1;
             // visual signal
             Imgproc.rectangle(small, coneWindowOutLine, new Scalar(255, 255, 255), 2);
 

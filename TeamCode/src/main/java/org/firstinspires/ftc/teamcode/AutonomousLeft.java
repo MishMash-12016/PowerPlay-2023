@@ -50,7 +50,7 @@ public class AutonomousLeft extends LinearOpMode {
         drive = new SampleMecanumDrive(hardwareMap);
 
         Pose2d startPose = new Pose2d(30.7, 61.4, Math.toRadians(-90));
-        Pose2d scoringPose = new Pose2d(37, 2, Math.toRadians(-165));
+        Pose2d scoringPose = new Pose2d(37, 3, Math.toRadians(-164));
 
         Pose2d parking1 = new Pose2d(61  , 32, Math.toRadians(-90));
         Pose2d parking2_1 = new Pose2d(36, 20, Math.toRadians(-90));
