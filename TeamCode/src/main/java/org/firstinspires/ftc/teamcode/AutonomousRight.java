@@ -89,7 +89,7 @@ public class AutonomousRight extends LinearOpMode {
                     gamepad.left_stick_x = gamepad1.left_stick_x;
                     gamepad.right_stick_x = gamepad1.right_stick_x;
 
-                    lastAngle = delayMaker;
+                    AutonomousLeft.lastAngle = delayMaker;
                     delayMaker = robotController.getRobotAngle();
 
                 }
