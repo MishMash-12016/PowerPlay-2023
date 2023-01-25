@@ -34,6 +34,12 @@ public class manualDrive extends LinearOpMode{
             gamepad.left_stick_x = gamepad1.left_stick_x;
             gamepad.right_stick_x = gamepad1.right_stick_x;
 
+            if (gamepad2.dpad_up) gamepad.coneLevel = 4;
+            else if (gamepad2.dpad_right) gamepad.coneLevel = 3;
+            else if (gamepad2.dpad_down) gamepad.coneLevel = 2;
+            else if (gamepad2.dpad_left) gamepad.coneLevel = 1;
+            else gamepad.coneLevel = 0;
+
         }
 
         robotController.terminate();
@@ -64,4 +70,6 @@ class gamepad{
     public static boolean isCycleControllerActive = true;
 
     public static boolean isStopRequested = false;
+
+    public static int coneLevel = 0;
 }
