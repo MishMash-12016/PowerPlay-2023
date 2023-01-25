@@ -1,20 +1,15 @@
 package org.firstinspires.ftc.teamcode.myDependencies;
 
-import android.hardware.HardwareBuffer;
-
-import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.myDependencies.oldFiles.ElevatorPositions;
 import org.firstinspires.ftc.teamcode.myDependencies.oldFiles.Gamepad;
-import org.firstinspires.ftc.teamcode.myDependencies.oldFiles.Vector;
 
 public class System {
     // region SYSTEM CONSTANTS
-    public enum DrivingMode {}
+    public enum DriveMode {}
     public enum ScoreState {}
     public enum CollectionState {}
 
@@ -29,6 +24,7 @@ public class System {
 
     // region SYSTEM VARIABLES
     public static boolean isStopRequested;
+    public static int currentConeHeight;
     // endregion SYSTEM VARIABLES
 
     // region INITIALIZATION

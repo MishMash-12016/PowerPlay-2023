@@ -35,12 +35,19 @@ public class arm {
     // endregion
 
     // region FUNCTIONALITY
-    public static void setPosition(double position){
+    public static void goToRelativePosition(double position){
+        setPosition(inPosition + Math.abs(outPosition - inPosition) * position);
+    }
+
+    public static boolean isOut(){
+        return isArmOut.getState();
+    }
+    // endregion
+
+    // region PRIVATE FUNCTIONALITY
+    private static void setPosition(double position){
         rightServo.setPosition(position);
         leftServo .setPosition(position);
-    }
-    public static boolean isIn(){
-        return !isArmOut.getState();
     }
     // endregion
 }
