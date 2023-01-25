@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.developerTools;
 
+import org.firstinspires.ftc.teamcode.myDependencies.System;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
@@ -13,14 +14,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class Test extends LinearOpMode {
     @Override
     public void runOpMode() {
+        System.initialize(hardwareMap, telemetry, gamepad1);
 
-        DistanceSensor d = hardwareMap.get(DistanceSensor.class, "grabberDistanceSensor");
         waitForStart();
         if (isStopRequested()) return;
         resetRuntime();
         while (opModeIsActive()){
-            telemetry.addData("position", d.getDistance(DistanceUnit.CM));
-            telemetry.update();
+            telemetry.addData("a", System.gamepad1.a);
         }
 //        Servo grabberRight = hardwareMap.servo.get("grabberRight");
 //        Servo grabberLeft = hardwareMap.servo.get("grabberLeft");

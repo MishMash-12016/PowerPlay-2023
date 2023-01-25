@@ -74,6 +74,7 @@ public class driveTrain {
     // endregion
 
     // region FUNCTIONALITY
+    /*
     Thread controller = new Thread(() -> {
         isControllerActive = true;
         while(isControllerActive) {
@@ -104,7 +105,7 @@ public class driveTrain {
                     DrivingPowerA + turningPower);
         }
     });
-    // endregion
+    // endregion*/
 
     // region PRIVATE FUNCTIONALITY
     private static void setPower(double frontRightPower, double frontLeftPower, double backRightPower, double backLeftPower){

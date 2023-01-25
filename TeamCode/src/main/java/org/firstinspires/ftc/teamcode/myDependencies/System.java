@@ -17,7 +17,7 @@ public class System {
 
     public static final InterruptedException stopRequest = new InterruptedException("stop is requested");
 
-    public static Gamepad gamepad1;
+    public static com.qualcomm.robotcore.hardware.Gamepad gamepad1;
     public static Telemetry telemetry;
     public static HardwareMap hardwareMap;
     // endregion SYSTEM CONSTANTS
@@ -28,7 +28,7 @@ public class System {
     // endregion SYSTEM VARIABLES
 
     // region INITIALIZATION
-    public static void Initialize(HardwareMap hardwareMap, Telemetry telemetry, Gamepad gamepad1){
+    public static void initialize(HardwareMap hardwareMap, Telemetry telemetry, com.qualcomm.robotcore.hardware.Gamepad gamepad1){
         System.hardwareMap = hardwareMap;
         System.telemetry   = telemetry  ;
         System.gamepad1    = gamepad1   ;
