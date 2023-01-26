@@ -1,17 +1,16 @@
 package org.firstinspires.ftc.teamcode.myDependencies;
 
-import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
-import org.firstinspires.ftc.teamcode.myDependencies.oldFiles.ElevatorPositions;
-import org.firstinspires.ftc.teamcode.myDependencies.oldFiles.Gamepad;
 import org.firstinspires.ftc.teamcode.myDependencies.oldFiles.Vector;
-import org.firstinspires.ftc.teamcode.opModes.autonomousOpModes.AutonomousLeft;
 
 public class driveTrain {
     // region MOTORS
@@ -34,7 +33,7 @@ public class driveTrain {
     private static double turningStrength;
     private static System.DriveMode mode;
     private static boolean isControllerActive;
-    private static boolean startingAngle;
+    public  static double  startingAngle;
 
     private static double DrivingPowerA;
     private static double DrivingPowerB;
@@ -86,22 +85,21 @@ public class driveTrain {
     // endregion
 
     // region FUNCTIONALITY
-
-    Thread controller = new Thread(() -> {
+    public static Thread controller = new Thread(() -> {
         isControllerActive = true;
         while(isControllerActive) {
             joystickLeft.x = System.gamepad1.left_stick_x;
             joystickLeft.y = System.gamepad1.left_stick_y;
 
             // make the bot field oriented while considering the starting angle
-            joystickLeft.addAngle(-getRobotAngle() - AutonomousLeft.lastAngle);
+            joystickLeft.addAngle(-getRobotAngle() - startingAngle);
 
 
             // using my equations to calculate the power ratios
-            DrivingPowerA = (joystickLeft.getY() - joystickLeft.getX()) / sq2 * drivingStrength;
-            DrivingPowerB = (joystickLeft.getY() + joystickLeft.getX()) / sq2 * drivingStrength;
+            DrivingPowerA = (joystickLeft.y - joystickLeft.x) / sq2 * drivingStrength;
+            DrivingPowerB = (joystickLeft.y + joystickLeft.x) / sq2 * drivingStrength;
 
-            turningPower = Gamepad.right_stick_x * turningStrength;
+            turningPower = System.gamepad1.right_stick_x * turningStrength;
 
             // setting the powers in consideration of the turning speed
             setPower(DrivingPowerA - turningPower,
@@ -119,8 +117,17 @@ public class driveTrain {
         backRight .setPower(backRightPower );
         backLeft  .setPower(backLeftPower  );
     }
-    private static void calculateAndSetDrivingPower(double x, double y){
+    private static double getRobotAngle() {
+        // get the angle from the imu
+        double angle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle;
 
+        // normalize the angle
+        if (angle < 0) {
+            angle += Math.PI * 2;
+        }
+        angle = Math.PI * 2 - angle;
+
+        return angle;
     }
     // endregion
 }

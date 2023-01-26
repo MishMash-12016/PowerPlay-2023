@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.myDependencies.driveTrain;
 import org.firstinspires.ftc.teamcode.roadRunnerDependencies.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.roadRunnerDependencies.trajectorysequence.TrajectorySequence;
 import org.openftc.easyopencv.OpenCvCamera;
@@ -15,17 +16,12 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
 
 import org.firstinspires.ftc.teamcode.myDependencies.oldFiles.PipeLine;
-import org.firstinspires.ftc.teamcode.myDependencies.oldFiles.Gamepad;
 import org.firstinspires.ftc.teamcode.myDependencies.oldFiles.RobotController;
 
 @Autonomous
 public class AutonomousLeft extends LinearOpMode {
     // the camera
     private OpenCvWebcam webcam;
-
-
-    // we save the finishing angle for the field oriented after this op mode
-    public static double lastAngle;
     // when turning off the op mode the imu turns off and his last value is 0, therefor we need to save the value before that (create a delay)
     public static double delayMaker;
 
@@ -93,7 +89,7 @@ public class AutonomousLeft extends LinearOpMode {
                     Gamepad.left_stick_x = gamepad1.left_stick_x;
                     Gamepad.right_stick_x = gamepad1.right_stick_x;
 
-                    lastAngle = delayMaker;
+                    driveTrain.startingAngle = delayMaker;
                     delayMaker = robotController.getRobotAngle();
 
                 }
