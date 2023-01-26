@@ -36,6 +36,13 @@ public class System {
 
         isStopRequested = false;
         currentConeHeight = 0;
+
+        arm.initialize();
+        driveTrain.initialize();
+        elevator.initialize();
+        grabber.initialize();
+        puffer.initialize();
+
     }
     // endregion
 

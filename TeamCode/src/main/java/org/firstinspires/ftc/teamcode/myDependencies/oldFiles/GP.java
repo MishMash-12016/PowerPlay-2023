@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.myDependencies.oldFiles;
 
-public class Gamepad {
+public class GP {
     public static double right_trigger = 0;
     public static double left_trigger = 0;
     public static double right_stick_x = 0;

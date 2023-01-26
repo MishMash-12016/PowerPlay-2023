@@ -18,7 +18,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
-import org.firstinspires.ftc.teamcode.opModes.autonomousOpModes.AutonomousLeft;
 
 public class RobotController {
 
@@ -196,15 +195,15 @@ public class RobotController {
                     grabber.setPosition(grabberOpen);
 
                     while(elevatorPosition - elevatorLeft.getCurrentPosition() > 10000){
-                        if (Gamepad.isStopRequested){
+                        if (GP.isStopRequested){
                             throw new InterruptedException("stop requested");
                         }
                     }
 
                     setPlacerPosition(placerOut);
 
-                    while (Gamepad.right_trigger == 0) {
-                        if (Gamepad.isStopRequested) {
+                    while (GP.right_trigger == 0) {
+                        if (GP.isStopRequested) {
                             throw new InterruptedException("stop requested");
                         }
                         telemetry.addData("aaa", "aaa");
@@ -213,8 +212,8 @@ public class RobotController {
 
                     puffer.setPosition(pufferRelease);
 
-                    while (Gamepad.right_trigger > 0) {
-                        if (Gamepad.isStopRequested) {
+                    while (GP.right_trigger > 0) {
+                        if (GP.isStopRequested) {
                             throw new InterruptedException("stop requested");
                         }
                         telemetry.addData("aaa", "aaa");
@@ -243,15 +242,15 @@ public class RobotController {
 
 
         cycleController = new Thread(() -> {
-            Gamepad.isCycleControllerActive = true;
-            while (Gamepad.isCycleControllerActive) {
-                if (Gamepad.left_trigger > 0 || Gamepad.left_bumper) {
+            GP.isCycleControllerActive = true;
+            while (GP.isCycleControllerActive) {
+                if (GP.left_trigger > 0 || GP.left_bumper) {
 
                     // bring the grabber down
                     setGrabberPosition(grabberPile[0]);
 
                     // bring the grabber out the correct amount
-                    setArmPosition(Gamepad.left_trigger * (armOut - armIn) + armIn);
+                    setArmPosition(GP.left_trigger * (armOut - armIn) + armIn);
 
                     // catch the cone if its in range
                     if (grabberDistanceSensor.getDistance(DistanceUnit.CM) < grabberCatchTrigger && grabberSafety.milliseconds() > 500) {
@@ -292,8 +291,8 @@ public class RobotController {
         elevatorPosition = ElevatorPositions.bottom;
         elevatorPower = 0;
         elevatorController = new Thread(() -> {
-            Gamepad.isElevatorControllerActive = true;
-            while (Gamepad.isElevatorControllerActive){
+            GP.isElevatorControllerActive = true;
+            while (GP.isElevatorControllerActive){
                 elevatorPower = Math.max(Math.min((elevatorPosition - elevatorLeft.getCurrentPosition()) / 2300.0, 1), -1);
 
                 // make the elevator weaker when coming down to compensate for gravity
@@ -307,25 +306,25 @@ public class RobotController {
 
         joystick_left = new Vector(0, 0);
         driveController = new Thread(() ->{
-            Gamepad.isDriveControllerActive = true;
-            while(Gamepad.isDriveControllerActive) {
-                joystick_left.x = Gamepad.left_stick_x;
-                joystick_left.y = -Gamepad.left_stick_y;
+            GP.isDriveControllerActive = true;
+            while(GP.isDriveControllerActive) {
+                joystick_left.x = GP.left_stick_x;
+                joystick_left.y = -GP.left_stick_y;
 
                 // make the bot field oriented while considering the starting angle
-                joystick_left.addAngle(-getRobotAngle() - AutonomousLeft.lastAngle);
+                //joystick_left.addAngle(-getRobotAngle() - AutonomousLeft.lastAngle);
 
 
                 // using my equations to calculate the power ratios
                 DrivingPowerA = (joystick_left.y - joystick_left.x) / sq2 * overallDrivingPower;
                 DrivingPowerB = (joystick_left.y + joystick_left.x) / sq2 * overallDrivingPower;
 
-                turningPower = Gamepad.right_stick_x * overallTurningPower;
+                turningPower = GP.right_stick_x * overallTurningPower;
 
                 // slow mode;
                 if (grabberLeft.getPosition() == grabberPile[0] ||
                         elevatorPosition != ElevatorPositions.bottom ||
-                        Gamepad.right_bumper) {
+                        GP.right_bumper) {
                     overallDrivingPower = 0.4;
                     overallTurningPower = 0.2;
                 } else {
@@ -343,12 +342,12 @@ public class RobotController {
 
     public void safeSleep(int millisecond) throws InterruptedException {
         et.reset();
-        while (et.milliseconds() < millisecond){ if (Gamepad.isStopRequested) throw new InterruptedException("stop requested"); }
+        while (et.milliseconds() < millisecond){ if (GP.isStopRequested) throw new InterruptedException("stop requested"); }
     }
 
     private boolean a = true;
     private boolean A_pressed(){
-        if (Gamepad.a){
+        if (GP.a){
             if(a){
                 a = false;
                 return true;
@@ -359,7 +358,7 @@ public class RobotController {
 
     private boolean x = true;
     private boolean X_pressed(){
-        if (Gamepad.x){
+        if (GP.x){
             if(x){
                 x = false;
                 return true;
@@ -370,7 +369,7 @@ public class RobotController {
 
     private boolean y = true;
     private boolean Y_pressed(){
-        if (Gamepad.y){
+        if (GP.y){
             if(y){
                 y = false;
                 return true;
@@ -468,14 +467,14 @@ public class RobotController {
 
             safety.reset();
             while (armSensor.getState() && safety.milliseconds() < 600) {
-                if (Gamepad.isStopRequested) throw new InterruptedException("stop requested");
+                if (GP.isStopRequested) throw new InterruptedException("stop requested");
             }
 
             setGrabberPosition(grabberIn);
 
             safety.reset();
             while (grabberPositionSensor.getState() && safety.milliseconds() < 500){
-                if (Gamepad.isStopRequested) throw new InterruptedException("stop requested");
+                if (GP.isStopRequested) throw new InterruptedException("stop requested");
             }
         }catch (InterruptedException e){}
     }
@@ -489,24 +488,24 @@ public class RobotController {
 
         elevatorPosition = ElevatorPositions.bottom;
 
-        Gamepad.a = false;
-        Gamepad.b = false;
-        Gamepad.y = false;
-        Gamepad.x = false;
+        GP.a = false;
+        GP.b = false;
+        GP.y = false;
+        GP.x = false;
 
-        Gamepad.left_trigger = 0;
-        Gamepad.right_trigger = 0;
+        GP.left_trigger = 0;
+        GP.right_trigger = 0;
 
-        Gamepad.left_bumper = false;
-        Gamepad.right_bumper = false;
+        GP.left_bumper = false;
+        GP.right_bumper = false;
 
-        Gamepad.left_stick_y = 0;
-        Gamepad.left_stick_x = 0;
-        Gamepad.right_stick_x = 0;
+        GP.left_stick_y = 0;
+        GP.left_stick_x = 0;
+        GP.right_stick_x = 0;
 
-        Gamepad.isDriveControllerActive = false;
-        Gamepad.isElevatorControllerActive = false;
-        Gamepad.isCycleControllerActive = false;
+        GP.isDriveControllerActive = false;
+        GP.isElevatorControllerActive = false;
+        GP.isCycleControllerActive = false;
 
 
     }

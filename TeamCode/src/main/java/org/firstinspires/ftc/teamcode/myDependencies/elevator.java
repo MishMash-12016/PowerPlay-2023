@@ -18,7 +18,7 @@ public class elevator {
     // endregion
 
     // region VARIABLES
-    public static double position;
+    public static double wantedPosition;
 
     private static double power;
     private static boolean isControllerActive;
@@ -38,7 +38,7 @@ public class elevator {
     }
 
     public static void reset(){
-        position = 0;
+        wantedPosition = 0;
         power    = 0;
         isControllerActive = false;
     }
@@ -68,7 +68,7 @@ public class elevator {
         motorRight.setPower(power);
     }
     private static double calculatePower(){
-        return (position - motorLeft.getCurrentPosition()) / 2300.0;
+        return (wantedPosition - motorLeft.getCurrentPosition()) / 2300.0;
     }
     // endregion
 }

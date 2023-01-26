@@ -16,7 +16,6 @@ public class manualDrive extends LinearOpMode{
         if (isStopRequested()) return;
         resetRuntime();
 
-        driveTrain.initialize();
         driveTrain.controller.start();
     }
 }
