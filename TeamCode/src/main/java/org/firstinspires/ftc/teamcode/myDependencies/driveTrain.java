@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.myDependencies;
 
+import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -9,6 +10,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.teamcode.myDependencies.oldFiles.ElevatorPositions;
 import org.firstinspires.ftc.teamcode.myDependencies.oldFiles.Gamepad;
+import org.firstinspires.ftc.teamcode.myDependencies.oldFiles.Vector;
 import org.firstinspires.ftc.teamcode.opModes.autonomousOpModes.AutonomousLeft;
 
 public class driveTrain {
@@ -33,6 +35,11 @@ public class driveTrain {
     private static System.DriveMode mode;
     private static boolean isControllerActive;
     private static boolean startingAngle;
+
+    private static double DrivingPowerA;
+    private static double DrivingPowerB;
+    private static double turningPower;
+    private static Vector joystickLeft;
     // endregion
 
     // region INITIALIZATION
@@ -70,42 +77,40 @@ public class driveTrain {
         turningStrength = 1;
         mode = null;
         isControllerActive = false;
+
+        DrivingPowerA = 0;
+        DrivingPowerB = 0;
+        turningPower = 0;
+        joystickLeft = new Vector();
     }
     // endregion
 
     // region FUNCTIONALITY
-    /*
+
     Thread controller = new Thread(() -> {
         isControllerActive = true;
         while(isControllerActive) {
+            joystickLeft.x = System.gamepad1.left_stick_x;
+            joystickLeft.y = System.gamepad1.left_stick_y;
+
             // make the bot field oriented while considering the starting angle
-            joystick_left.addAngle(-getRobotAngle() - AutonomousLeft.lastAngle);
+            joystickLeft.addAngle(-getRobotAngle() - AutonomousLeft.lastAngle);
 
 
             // using my equations to calculate the power ratios
-            DrivingPowerA = (joystick_left.y - joystick_left.x) / sq2 * drivingStrength;
-            DrivingPowerB = (joystick_left.y + joystick_left.x) / sq2 * drivingStrength;
+            DrivingPowerA = (joystickLeft.getY() - joystickLeft.getX()) / sq2 * drivingStrength;
+            DrivingPowerB = (joystickLeft.getY() + joystickLeft.getX()) / sq2 * drivingStrength;
 
-            turningPower = Gamepad.right_stick_x * overallTurningPower;
+            turningPower = Gamepad.right_stick_x * turningStrength;
 
-            // slow mode;
-            if (grabberLeft.getPosition() == grabberPile[0] ||
-                    elevatorPosition != ElevatorPositions.bottom ||
-                    Gamepad.right_bumper) {
-                overallDrivingPower = 0.4;
-                overallTurningPower = 0.2;
-            } else {
-                overallDrivingPower = 1;
-                overallTurningPower = 1;
-            }
             // setting the powers in consideration of the turning speed
-            setDrivingPower(DrivingPowerA - turningPower,
+            setPower(DrivingPowerA - turningPower,
                     DrivingPowerB + turningPower,
                     DrivingPowerB - turningPower,
                     DrivingPowerA + turningPower);
         }
     });
-    // endregion*/
+    // endregion
 
     // region PRIVATE FUNCTIONALITY
     private static void setPower(double frontRightPower, double frontLeftPower, double backRightPower, double backLeftPower){
@@ -113,6 +118,9 @@ public class driveTrain {
         frontLeft .setPower(frontLeftPower );
         backRight .setPower(backRightPower );
         backLeft  .setPower(backLeftPower  );
+    }
+    private static void calculateAndSetDrivingPower(double x, double y){
+
     }
     // endregion
 }
