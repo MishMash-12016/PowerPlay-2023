@@ -1,8 +1,11 @@
-package org.firstinspires.ftc.teamcode.myDependencies;
+package org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
+
+import org.firstinspires.ftc.teamcode.myDependencies.System;
 
 public class elevator {
     // region MOTORS
@@ -15,6 +18,12 @@ public class elevator {
     public static final int middlePosition = 12000;
     public static final int lowPosition    = 5000 ;
     public static final int bottomPosition = 0    ;
+
+    public static final int marginOfError = 400;
+    // endregion
+
+    // region SENSOR
+    public static DigitalChannel isUpSensor;
     // endregion
 
     // region VARIABLES
@@ -26,6 +35,7 @@ public class elevator {
 
     // region INITIALIZATION
     public static void initialize() {
+        // region MOTORS
         motorLeft = (DcMotorEx) System.hardwareMap.dcMotor.get("elevatorLeft");
         motorRight = (DcMotorEx) System.hardwareMap.dcMotor.get("elevatorRight");
 
@@ -33,6 +43,12 @@ public class elevator {
 
         motorLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motorLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        // endregion
+
+        // region SENSOR
+        isUpSensor = System.hardwareMap.get(DigitalChannel.class, "elevatorSensor");
+        isUpSensor.setMode(DigitalChannel.Mode.INPUT);
+        // endregion
 
         reset();
     }
@@ -45,7 +61,7 @@ public class elevator {
     // endregion
 
     // region FUNCTIONALITY
-    Thread controller = new Thread(() -> {
+    public static Thread controller = new Thread(() -> {
         reset();
         isControllerActive = true;
         while (isControllerActive && !System.isStopRequested){
@@ -60,6 +76,12 @@ public class elevator {
             setPower(power);
         }
     });
+    public static boolean isUp(){
+        return isUpSensor.getState();
+    }
+    public static boolean reachedWantedPosition(){
+        return marginOfError < Math.abs(wantedPosition - getCurrentPosition());
+    }
     // endregion
 
     // region PRIVATE FUNCTIONALITY
@@ -70,5 +92,9 @@ public class elevator {
     private static double calculatePower(){
         return (wantedPosition - motorLeft.getCurrentPosition()) / 2300.0;
     }
+    private static double getCurrentPosition() {
+        return motorLeft.getCurrentPosition();
+    }
     // endregion
+
 }

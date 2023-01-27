@@ -1,10 +1,11 @@
-package org.firstinspires.ftc.teamcode.myDependencies;
+package org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies;
 
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.myDependencies.System;
 
 public class grabber {
     // region SERVOS
@@ -25,10 +26,12 @@ public class grabber {
     private static final double[] pilePositions = {0.76, 0.72, 0.69, 0.65, 0.61};
 
 
-    private static final double grabPosition = 0.61;
-    private static final double releasePosition = 0.36;
+    private static final double grabPosition = 0.48;
+    private static final double midReleasePosition = 0.48;
+    private static final double releasePosition = 0.225;
 
     private static final double coneDistanceCatchTrigger = 8.5;
+    private static final double coneInDistance = 3;
     // endregion
 
     // region INITIALIZATION
@@ -36,7 +39,7 @@ public class grabber {
         // region SERVOS
         grabberServo = System.hardwareMap.servo.get("grabber");
 
-        release();
+        fullRelease();
 
         rightServo = System.hardwareMap.servo.get("placerRight");
         leftServo  = System.hardwareMap.servo.get("placerLeft" );
@@ -56,8 +59,9 @@ public class grabber {
     // endregion
 
     // region FUNCTIONALITY
-    public static void release() { grabberServo.setPosition(releasePosition); }
-    public static void grab()    { grabberServo.setPosition(grabPosition   ); }
+    public static void fullRelease() { grabberServo.setPosition(releasePosition   ); }
+    public static void midRelease()  { grabberServo.setPosition(midReleasePosition); }
+    public static void grab()        { grabberServo.setPosition(grabPosition      ); }
 
     public static void goToCone(int coneHeight){ setPosition(pilePositions[coneHeight]); }
     public static void goToMid()            { setPosition(middlePosition); }
@@ -65,6 +69,9 @@ public class grabber {
 
     public static boolean coneIsInRange(){
         return coneDistanceCatchTrigger > distanceFromConeSensor.getDistance(DistanceUnit.CM);
+    }
+    public static boolean hasCone(){
+        return coneInDistance > distanceFromConeSensor.getDistance(DistanceUnit.CM);
     }
     public static boolean isOut() {
         return isOutSensor.getState();

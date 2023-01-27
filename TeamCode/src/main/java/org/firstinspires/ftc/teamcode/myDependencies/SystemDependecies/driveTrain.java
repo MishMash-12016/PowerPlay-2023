@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.myDependencies;
+package org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
@@ -10,6 +10,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
+import org.firstinspires.ftc.teamcode.myDependencies.System;
 import org.firstinspires.ftc.teamcode.myDependencies.oldFiles.Vector;
 
 public class driveTrain {
@@ -68,14 +69,13 @@ public class driveTrain {
         imu.initialize(parameters);
         imu.startAccelerationIntegration(new Position(), new Velocity(), 10);
         // endregion
-
-        reset();
     }
     public static void reset(){
         drivingStrength = 1;
         turningStrength = 1;
         mode = null;
         isControllerActive = false;
+        startingAngle = 0;
 
         DrivingPowerA = 0;
         DrivingPowerB = 0;

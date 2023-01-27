@@ -14,31 +14,15 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class Test extends LinearOpMode {
     @Override
     public void runOpMode() {
-        System.initialize(hardwareMap, telemetry, gamepad1);
+        System.initialize(hardwareMap, telemetry, gamepad1, gamepad2);
 
         waitForStart();
         if (isStopRequested()) return;
         resetRuntime();
         while (opModeIsActive()){
-            telemetry.addData("a", System.gamepad1.a);
-        }
-//        Servo grabberRight = hardwareMap.servo.get("grabberRight");
-//        Servo grabberLeft = hardwareMap.servo.get("grabberLeft");
-//
-//
-//        grabberLeft.setDirection(Servo.Direction.REVERSE);
-//
-//        waitForStart();
-//        if (isStopRequested()) return;
-//        resetRuntime();
-//
-//        while (opModeIsActive()) {
-//            grabberRight.setPosition(0.75 - gamepad1.left_stick_y / 25);
-//            grabberLeft.setPosition(0.75 - gamepad1.left_stick_y / 25);
-//
-//            telemetry.addData("position", 0.75 - gamepad1.left_stick_y / 25);
-//            telemetry.update();
-//        }
 
+
+
+        }
     }
 }

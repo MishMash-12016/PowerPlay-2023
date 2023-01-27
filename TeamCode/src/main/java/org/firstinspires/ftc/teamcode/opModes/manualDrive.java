@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.myDependencies.System;
-import org.firstinspires.ftc.teamcode.myDependencies.driveTrain;
+import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.driveTrain;
 
 @TeleOp
 public class manualDrive extends LinearOpMode{
@@ -16,6 +16,6 @@ public class manualDrive extends LinearOpMode{
         if (isStopRequested()) return;
         resetRuntime();
 
-        driveTrain.controller.start();
+        System.startAllControllers();
     }
 }

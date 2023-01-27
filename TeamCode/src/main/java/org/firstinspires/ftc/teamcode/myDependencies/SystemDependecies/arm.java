@@ -1,7 +1,9 @@
-package org.firstinspires.ftc.teamcode.myDependencies;
+package org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies;
 
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.teamcode.myDependencies.System;
 
 public class arm {
     // region SERVOS
