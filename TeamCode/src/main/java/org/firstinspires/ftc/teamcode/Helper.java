@@ -67,8 +67,8 @@ class RobotController {
     private final double pufferGrab    = 0.14;
     private final double pufferRelease = 0;
 
-    private final double grabberGrab = 0.61;
-    private final double grabberOpen = 0.36;
+    private final double grabberGrab = 0.48;
+    private final double grabberOpen = 0.225;
 
     /** SENSOR CONSTANTS */
     private final double grabberCatchTrigger = 8.5;

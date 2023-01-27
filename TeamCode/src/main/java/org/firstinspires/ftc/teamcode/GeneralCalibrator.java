@@ -50,6 +50,11 @@ public class GeneralCalibrator extends LinearOpMode {
         String[] name = names[i].split("\n");
 
         if(name.length == 1){
+            if (name[0] == "grabber"){
+                position = 0.125;
+                sensitivity = 0.8 - 0.125;
+            }
+
             Servo s = hardwareMap.servo.get(name[0]);
 
             while (opModeIsActive()) {
@@ -58,6 +63,7 @@ public class GeneralCalibrator extends LinearOpMode {
                 if (A_Pressed()){
                     position -= gamepad1.left_stick_y * sensitivity;
                     sensitivity /= 2;
+                    sleep(500);
                 }
 
                 telemetry.addData("position", position - gamepad1.left_stick_y * sensitivity);
@@ -77,6 +83,7 @@ public class GeneralCalibrator extends LinearOpMode {
                 if (A_Pressed()) {
                     position -= gamepad1.left_stick_y * sensitivity;
                     sensitivity /= 2;
+                    sleep(500);
                 }
 
                 telemetry.addData("position", position - gamepad1.left_stick_y * sensitivity);
