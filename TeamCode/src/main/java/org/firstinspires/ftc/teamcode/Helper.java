@@ -61,13 +61,14 @@ class RobotController {
     private final double armIn  = 0.5;  // hiTech value 0.41;
 
     private final double placerIn  = 0;
+    private final double placerMid = 0.4;// 0.78
     private final double placerOut = 0.75;// 0.78
 
     private final double pufferGrab    = 0.14;
     private final double pufferRelease = 0;
 
-    private final double grabberGrab = 0.61;
-    private final double grabberOpen = 0.36;
+    private final double grabberGrab = 0.48;
+    private final double grabberOpen = 0.225;
 
     /** SENSOR CONSTANTS */
     private final double grabberCatchTrigger = 8.5;
@@ -260,7 +261,7 @@ class RobotController {
                 if (gamepad.left_trigger > 0 || gamepad.left_bumper) {
 
                     // bring the grabber down
-                    setGrabberPosition(grabberPile[0]);
+                    setGrabberPosition(grabberPile[gamepad.coneLevel]);
 
                     // bring the grabber out the correct amount
                     setArmPosition(gamepad.left_trigger * (armOut - armIn) + armIn);
@@ -282,7 +283,7 @@ class RobotController {
                         setArmPosition(armIn);
                     }
                     grabberSafety.reset();
-                    if (puffer.getPosition() != pufferGrab && pufferSafety.milliseconds() > 1000 && !teleScore.isAlive()){
+                    if (puffer.getPosition() != pufferGrab && pufferSafety.milliseconds() > 1000 && !teleScore.isAlive()) {
                         puffer.setPosition(pufferGrab);
                         grabber.setPosition(grabberOpen);
                     }
@@ -335,7 +336,7 @@ class RobotController {
                 turningPower = gamepad.right_stick_x * overallTurningPower;
 
                 // slow mode;
-                if (grabberLeft.getPosition() == grabberPile[0] ||
+                if (grabberLeft.getPosition() == grabberPile[gamepad.coneLevel] ||
                     elevatorPosition != elevatorPositions.bottom ||
                     gamepad.right_bumper) {
                     overallDrivingPower = 0.4;
@@ -520,7 +521,7 @@ class RobotController {
         gamepad.isElevatorControllerActive = false;
         gamepad.isCycleControllerActive = false;
 
-
+        gamepad.coneLevel = 0;
     }
 
 }
