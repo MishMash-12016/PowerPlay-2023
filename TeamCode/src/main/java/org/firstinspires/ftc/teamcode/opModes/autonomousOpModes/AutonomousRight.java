@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.driveTrain;
+import org.firstinspires.ftc.teamcode.myDependencies.oldFiles.GP;
 import org.firstinspires.ftc.teamcode.roadRunnerDependencies.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.roadRunnerDependencies.trajectorysequence.TrajectorySequence;
 import org.openftc.easyopencv.OpenCvCamera;
@@ -74,20 +75,20 @@ public class AutonomousRight extends LinearOpMode {
         try{
             new Thread(() -> {
                 while (opModeIsActive()){
-                    Gamepad.a = gamepad1.a;
-                    Gamepad.b = gamepad1.b;
-                    Gamepad.y = gamepad1.y;
-                    Gamepad.x = gamepad1.x;
+                    GP.a = gamepad1.a;
+                    GP.b = gamepad1.b;
+                    GP.y = gamepad1.y;
+                    GP.x = gamepad1.x;
 
-                    Gamepad.left_trigger = gamepad1.left_trigger;
-                    Gamepad.right_trigger = gamepad1.right_trigger;
+                    GP.left_trigger = gamepad1.left_trigger;
+                    GP.right_trigger = gamepad1.right_trigger;
 
-                    Gamepad.left_bumper = gamepad1.left_bumper;
-                    Gamepad.right_bumper = gamepad1.right_bumper;
+                    GP.left_bumper = gamepad1.left_bumper;
+                    GP.right_bumper = gamepad1.right_bumper;
 
-                    Gamepad.left_stick_y = gamepad1.left_stick_y;
-                    Gamepad.left_stick_x = gamepad1.left_stick_x;
-                    Gamepad.right_stick_x = gamepad1.right_stick_x;
+                    GP.left_stick_y = gamepad1.left_stick_y;
+                    GP.left_stick_x = gamepad1.left_stick_x;
+                    GP.right_stick_x = gamepad1.right_stick_x;
 
                     driveTrain.startingAngle = delayMaker;
                     delayMaker = robotController.getRobotAngle();

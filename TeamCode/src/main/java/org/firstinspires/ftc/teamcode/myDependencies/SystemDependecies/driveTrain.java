@@ -10,7 +10,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
-import org.firstinspires.ftc.teamcode.myDependencies.System;
+import org.firstinspires.ftc.teamcode.myDependencies.RobotSystem;
 import org.firstinspires.ftc.teamcode.myDependencies.oldFiles.Vector;
 
 public class driveTrain {
@@ -32,7 +32,7 @@ public class driveTrain {
     // region VARIABLES
     private static double drivingStrength;
     private static double turningStrength;
-    private static System.DriveMode mode;
+    private static RobotSystem.DriveMode mode;
     private static boolean isControllerActive;
     public  static double  startingAngle;
 
@@ -45,10 +45,10 @@ public class driveTrain {
     // region INITIALIZATION
     public static void initialize(){
         // region MOTORS
-        frontRight = System.hardwareMap.dcMotor.get("frontRight");
-        frontLeft  = System.hardwareMap.dcMotor.get("frontLeft" );
-        backRight  = System.hardwareMap.dcMotor.get("backRight" );
-        backLeft   = System.hardwareMap.dcMotor.get("backLeft"  );
+        frontRight = RobotSystem.hardwareMap.dcMotor.get("frontRight");
+        frontLeft  = RobotSystem.hardwareMap.dcMotor.get("frontLeft" );
+        backRight  = RobotSystem.hardwareMap.dcMotor.get("backRight" );
+        backLeft   = RobotSystem.hardwareMap.dcMotor.get("backLeft"  );
 
         // flipping the two left driving motors
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -56,7 +56,7 @@ public class driveTrain {
         // endregion
 
         // region SENSORS
-        imu = System.hardwareMap.get(BNO055IMU.class, "imu");
+        imu = RobotSystem.hardwareMap.get(BNO055IMU.class, "imu");
 
         // initializing the imu
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
@@ -87,19 +87,33 @@ public class driveTrain {
     // region FUNCTIONALITY
     public static Thread controller = new Thread(() -> {
         isControllerActive = true;
+        double x;
+        double y;
+        double a;
+        double l;
         while(isControllerActive) {
-            joystickLeft.x = System.gamepad1.left_stick_x;
-            joystickLeft.y = System.gamepad1.left_stick_y;
+            x = RobotSystem.gamepad1.left_stick_x;
+            y = RobotSystem.gamepad1.left_stick_y;
+            a = Math.PI * 2;
+            if (y < 0) a += Math.PI + Math.atan(-x / y);
+            else if (y == 0) {
+                if (x < 0) a += Math.PI * 0.5;
+                else a += Math.PI * 1.5;
+            } else {
+                a += Math.atan(-x / y);
+            }
+            a = Math.PI * 2 - a % (Math.PI * 2);
 
-            // make the bot field oriented while considering the starting angle
-            joystickLeft.addAngle(-getRobotAngle() - startingAngle);
+            a += -getRobotAngle() - startingAngle;
 
+            l = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+            x = Math.sin(a) * l;
+            y = Math.cos(a) * l;
 
-            // using my equations to calculate the power ratios
-            DrivingPowerA = (joystickLeft.y - joystickLeft.x) / sq2 * drivingStrength;
-            DrivingPowerB = (joystickLeft.y + joystickLeft.x) / sq2 * drivingStrength;
+            DrivingPowerA = (y - x) / sq2 * drivingStrength;
+            DrivingPowerB = (y + x) / sq2 * drivingStrength;
 
-            turningPower = System.gamepad1.right_stick_x * turningStrength;
+            turningPower = RobotSystem.gamepad1.right_stick_x * turningStrength;
 
             // setting the powers in consideration of the turning speed
             setPower(DrivingPowerA - turningPower,

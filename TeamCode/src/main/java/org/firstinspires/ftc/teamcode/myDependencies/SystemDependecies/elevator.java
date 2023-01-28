@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 
-import org.firstinspires.ftc.teamcode.myDependencies.System;
+import org.firstinspires.ftc.teamcode.myDependencies.RobotSystem;
 
 public class elevator {
     // region MOTORS
@@ -36,8 +36,8 @@ public class elevator {
     // region INITIALIZATION
     public static void initialize() {
         // region MOTORS
-        motorLeft = (DcMotorEx) System.hardwareMap.dcMotor.get("elevatorLeft");
-        motorRight = (DcMotorEx) System.hardwareMap.dcMotor.get("elevatorRight");
+        motorLeft = (DcMotorEx) RobotSystem.hardwareMap.dcMotor.get("elevatorLeft");
+        motorRight = (DcMotorEx) RobotSystem.hardwareMap.dcMotor.get("elevatorRight");
 
         motorRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -46,7 +46,7 @@ public class elevator {
         // endregion
 
         // region SENSOR
-        isUpSensor = System.hardwareMap.get(DigitalChannel.class, "elevatorSensor");
+        isUpSensor = RobotSystem.hardwareMap.get(DigitalChannel.class, "elevatorSensor");
         isUpSensor.setMode(DigitalChannel.Mode.INPUT);
         // endregion
 
@@ -64,7 +64,7 @@ public class elevator {
     public static Thread controller = new Thread(() -> {
         reset();
         isControllerActive = true;
-        while (isControllerActive && !System.isStopRequested){
+        while (isControllerActive && !RobotSystem.isStopRequested){
             power = calculatePower();
             if (power >  1) power =  1;
             if (power < -1) power = -1;

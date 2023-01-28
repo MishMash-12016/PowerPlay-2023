@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.myDependencies.System;
+import org.firstinspires.ftc.teamcode.myDependencies.RobotSystem;
 
 public class grabber {
     // region SERVOS
@@ -37,12 +37,12 @@ public class grabber {
     // region INITIALIZATION
     public static void initialize(){
         // region SERVOS
-        grabberServo = System.hardwareMap.servo.get("grabber");
+        grabberServo = RobotSystem.hardwareMap.servo.get("grabber");
 
         fullRelease();
 
-        rightServo = System.hardwareMap.servo.get("placerRight");
-        leftServo  = System.hardwareMap.servo.get("placerLeft" );
+        rightServo = RobotSystem.hardwareMap.servo.get("placerRight");
+        leftServo  = RobotSystem.hardwareMap.servo.get("placerLeft" );
 
         rightServo.setDirection(Servo.Direction.REVERSE);
 
@@ -50,10 +50,10 @@ public class grabber {
         // endregion
 
         // region SENSOR
-        isOutSensor = System.hardwareMap.get(DigitalChannel.class, "grabberOutSensor");
+        isOutSensor = RobotSystem.hardwareMap.get(DigitalChannel.class, "grabberOutSensor");
         isOutSensor.setMode(DigitalChannel.Mode.INPUT);
 
-        distanceFromConeSensor = System.hardwareMap.get(DistanceSensor.class, "grabberDistanceSensor");
+        distanceFromConeSensor = RobotSystem.hardwareMap.get(DistanceSensor.class, "grabberDistanceSensor");
         // endregion
     }
     // endregion

@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.myDependencies.System;
+import org.firstinspires.ftc.teamcode.myDependencies.RobotSystem;
 
 public class arm {
     // region SERVOS
@@ -23,14 +23,16 @@ public class arm {
     // region INITIALIZATION
     public static void initialize(){
         // region SERVOS
-        rightServo = System.hardwareMap.servo.get("armRight");
-        leftServo  = System.hardwareMap.servo.get("armLeft") ;
+        rightServo = RobotSystem.hardwareMap.servo.get("armRight");
+        leftServo  = RobotSystem.hardwareMap.servo.get("armLeft") ;
 
         leftServo.setDirection(Servo.Direction.REVERSE);
+
+        setPosition(inPosition);
         // endregion
 
         // region SENSOR
-        isArmOut = System.hardwareMap.get(DigitalChannel.class, "armSensor");
+        isArmOut = RobotSystem.hardwareMap.get(DigitalChannel.class, "armSensor");
         isArmOut.setMode(DigitalChannel.Mode.INPUT);
         // endregion
     }

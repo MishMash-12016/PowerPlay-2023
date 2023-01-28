@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.*;
 
 import java.util.concurrent.Callable;
 
-public class System {
+public class RobotSystem {
     // region SYSTEM CONSTANTS
     public enum DriveMode {}
     public enum ScoreState {}
@@ -33,10 +33,10 @@ public class System {
 
     // region INITIALIZATION
     public static void initialize(HardwareMap hardwareMap, Telemetry telemetry, Gamepad gamepad1, Gamepad gamepad2){
-        System.hardwareMap = hardwareMap;
-        System.telemetry   = telemetry  ;
-        System.gamepad1    = gamepad1   ;
-        System.gamepad2    = gamepad2   ;
+        RobotSystem.hardwareMap = hardwareMap;
+        RobotSystem.telemetry   = telemetry  ;
+        RobotSystem.gamepad1    = gamepad1   ;
+        RobotSystem.gamepad2    = gamepad2   ;
 
         isStopRequested = false;
         currentConeHeight = 0;
@@ -184,7 +184,7 @@ public class System {
             try {
                 grabber.goToCone(currentConeHeight);
                 grabber.fullRelease();
-                while (!System.manual.collect.isInterrupted() && !isStopRequested && (gamepad1.left_trigger > 0 || gamepad1.left_bumper)) {
+                while (!RobotSystem.manual.collect.isInterrupted() && !isStopRequested && (gamepad1.left_trigger > 0 || gamepad1.left_bumper)) {
                     arm.goToRelativePosition(gamepad1.left_trigger);
 
                     if (grabber.coneIsInRange()) {
@@ -197,7 +197,7 @@ public class System {
                     throw hardStopRequest;
                 }
 
-                if (System.manual.collect.isInterrupted()){
+                if (RobotSystem.manual.collect.isInterrupted()){
                     throw softStopRequest;
                 }
 

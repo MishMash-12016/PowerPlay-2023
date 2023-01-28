@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies;
 
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.myDependencies.System;
+import org.firstinspires.ftc.teamcode.myDependencies.RobotSystem;
 
 public class puffer {
     // region SERVOS
@@ -22,14 +22,16 @@ public class puffer {
 
     // region INITIALIZATION
     public static void initialize(){
-        pufferServo = System.hardwareMap.servo.get("puffer");
+        pufferServo = RobotSystem.hardwareMap.servo.get("puffer");
 
         release();
 
-        rightServo = System.hardwareMap.servo.get("placerRight");
-        leftServo  = System.hardwareMap.servo.get("placerLeft" );
+        rightServo = RobotSystem.hardwareMap.servo.get("placerRight");
+        leftServo  = RobotSystem.hardwareMap.servo.get("placerLeft" );
 
         rightServo.setDirection(Servo.Direction.REVERSE);
+
+        setPosition(inPosition);
     }
     // endregion
 
