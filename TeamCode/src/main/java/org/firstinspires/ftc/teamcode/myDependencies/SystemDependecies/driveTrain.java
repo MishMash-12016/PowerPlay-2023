@@ -11,7 +11,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.teamcode.myDependencies.RobotSystem;
-import org.firstinspires.ftc.teamcode.myDependencies.oldFiles.Vector;
 
 public class driveTrain {
     // region MOTORS
@@ -32,14 +31,7 @@ public class driveTrain {
     // region VARIABLES
     private static double drivingStrength;
     private static double turningStrength;
-    private static RobotSystem.DriveMode mode;
-    private static boolean isControllerActive;
     public  static double  startingAngle;
-
-    private static double DrivingPowerA;
-    private static double DrivingPowerB;
-    private static double turningPower;
-    private static Vector joystickLeft;
     // endregion
 
     // region INITIALIZATION
@@ -73,43 +65,39 @@ public class driveTrain {
     public static void reset(){
         drivingStrength = 1;
         turningStrength = 1;
-        mode = null;
-        isControllerActive = false;
         startingAngle = 0;
-
-        DrivingPowerA = 0;
-        DrivingPowerB = 0;
-        turningPower = 0;
-        joystickLeft = new Vector();
     }
     // endregion
 
     // region FUNCTIONALITY
     public static Thread controller = new Thread(() -> {
-        isControllerActive = true;
         double x;
         double y;
         double a;
         double l;
-        while(isControllerActive) {
+
+        double DrivingPowerA;
+        double DrivingPowerB;
+        double turningPower;
+
+        while(!RobotSystem.isStopRequested && !driveTrain.controller.isInterrupted()) {
+            // region GET THE ORIGINAL DIRECTION INPUT
             x = RobotSystem.gamepad1.left_stick_x;
             y = RobotSystem.gamepad1.left_stick_y;
-            a = Math.PI * 2;
-            if (y < 0) a += Math.PI + Math.atan(-x / y);
-            else if (y == 0) {
-                if (x < 0) a += Math.PI * 0.5;
-                else a += Math.PI * 1.5;
-            } else {
-                a += Math.atan(-x / y);
-            }
-            a = Math.PI * 2 - a % (Math.PI * 2);
+            // endregion
 
-            a += -getRobotAngle() - startingAngle;
+            // region MAKE IT FIELD ORIENTED
+            a = Math.atan2(x, y);
+            a += Math.PI * 2 - getRobotAngle() - startingAngle;
+            a = a % (Math.PI * 2);
 
             l = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+
             x = Math.sin(a) * l;
             y = Math.cos(a) * l;
+            // endregion
 
+            // region CALCULATE AND SET THE POWER
             DrivingPowerA = (y - x) / sq2 * drivingStrength;
             DrivingPowerB = (y + x) / sq2 * drivingStrength;
 
@@ -120,7 +108,10 @@ public class driveTrain {
                     DrivingPowerB + turningPower,
                     DrivingPowerB - turningPower,
                     DrivingPowerA + turningPower);
+            // endregion
         }
+
+        reset();
     });
     // endregion
 

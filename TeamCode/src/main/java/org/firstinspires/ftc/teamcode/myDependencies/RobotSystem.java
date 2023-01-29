@@ -11,12 +11,6 @@ import java.util.concurrent.Callable;
 
 public class RobotSystem {
     // region SYSTEM CONSTANTS
-    public enum DriveMode {}
-    public enum ScoreState {}
-    public enum CollectionState {}
-
-    public static class LedColor {}
-
     public static final InterruptedException hardStopRequest = new InterruptedException("stop everything !");
     public static final InterruptedException softStopRequest = new InterruptedException("stop running safely");
 
@@ -93,92 +87,75 @@ public class RobotSystem {
         }
     }
 
-    private static boolean a = true;
-    private static boolean A_firstPress(){
-        if (gamepad1.a){
-            if(a){
-                a = false;
-                return true;
-            }
-        } else a = true;
-        return false;
-    }
+    public static class FirstPress{
+        public static boolean a = true;
+        public static boolean A(){
+            if (gamepad1.a){
+                if(a){
+                    a = false;
+                    return true;
+                }
+            } else a = true;
+            return false;
+        }
 
-    private static boolean x = true;
-    private static boolean X_firstPress(){
-        if (gamepad1.x){
-            if(x){
-                x = false;
-                return true;
-            }
-        } else x = true;
-        return false;
-    }
+        public static boolean x = true;
+        public static boolean X(){
+            if (gamepad1.x){
+                if(x){
+                    x = false;
+                    return true;
+                }
+            } else x = true;
+            return false;
+        }
 
-    private static boolean y = true;
-    private static boolean Y_firstPress(){
-        if (gamepad1.y){
-            if(y){
-                y = false;
-                return true;
-            }
-        } else y = true;
-        return false;
-    }
+        public static boolean y = true;
+        public static boolean Y(){
+            if (gamepad1.y){
+                if(y){
+                    y = false;
+                    return true;
+                }
+            } else y = true;
+            return false;
+        }
 
-    private static boolean b = true;
-    private static boolean B_firstPress(){
-        if (gamepad1.b){
-            if(b){
-                b = false;
-                return true;
-            }
-        } else b = true;
-        return false;
+        public static boolean b = true;
+        public static boolean B(){
+            if (gamepad1.b){
+                if(b){
+                    b = false;
+                    return true;
+                }
+            } else b = true;
+            return false;
+        }
     }
     // endregion GENERAL FUNCTIONALITY
 
     // region DRIVER CONTROLLED FUNCTIONS
     private static final Thread cycleController = new Thread(() -> {
-        while (!isStopRequested) {
+        while (!isStopRequested && !RobotSystem.cycleController.isInterrupted()) {
             if (!manual.collect.isAlive() && (gamepad1.left_trigger > 0 || gamepad1.left_bumper)) {
                 manual.collect();
             }
 
-            if (A_firstPress()) {
-
-                elevator.wantedPosition = elevator.highPosition;
-                if (!manual.score.isAlive()) {
-                    manual.score();
-                }
-
+            if (!manual.score.isAlive()) {
+                if (FirstPress.A()) { manual.score(elevator.highPosition); }
+                else if (FirstPress.X()) { manual.score(elevator.middlePosition); }
+                else if (FirstPress.Y()) { manual.score(elevator.lowPosition); }
             }
-            else if (X_firstPress()) {
-
-                elevator.wantedPosition = elevator.middlePosition;
-                if (!manual.score.isAlive()) {
-                    manual.score();
-                }
-
-            }
-            else if (Y_firstPress()) {
-
-                elevator.wantedPosition = elevator.lowPosition;
-                if (!manual.score.isAlive()) {
-                    manual.score();
-                }
-
-            }
-            else if (B_firstPress()){
-                elevator.wantedPosition = elevator.bottomPosition;
-                manual.score.interrupt();
-            }
+            else if (FirstPress.B()){ elevator.wantedPosition = elevator.bottomPosition; }
         }
     });
 
     static class manual{
         public static void collect() {collect.start();}
-        public static void score() {score.start();}
+        public static void score(double height) {
+            elevator.wantedPosition = height;
+            score.start();
+        }
 
         private static final Thread collect = new Thread(() -> {
             try {
@@ -246,7 +223,7 @@ public class RobotSystem {
 
                 puffer.release();
 
-                await(() -> gamepad1.right_trigger == 0  || manual.score.isInterrupted());
+                await(() -> gamepad1.right_trigger == 0 || manual.score.isInterrupted());
 
                 throw softStopRequest;
             }catch (InterruptedException e1){
