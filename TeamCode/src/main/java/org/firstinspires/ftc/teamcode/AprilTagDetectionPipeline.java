@@ -128,11 +128,11 @@ class AprilTagDetectionPipeline extends OpenCvPipeline
         for(AprilTagDetection detection : detections)
         {
             Pose pose = poseFromTrapezoid(detection.corners, cameraMatrix, tagsizeX, tagsizeY);
-            drawAxisMarker(input, tagsizeY/2.0, 6, pose.rvec, pose.tvec, cameraMatrix);
-            draw3dCubeMarker(input, tagsizeX, tagsizeX, tagsizeY, 5, pose.rvec, pose.tvec, cameraMatrix);
+            drawAxisMarker(grey, tagsizeY/2.0, 6, pose.rvec, pose.tvec, cameraMatrix);
+            draw3dCubeMarker(grey, tagsizeX, tagsizeX, tagsizeY, 5, pose.rvec, pose.tvec, cameraMatrix);
         }
 
-        return input;
+        return grey;
     }
 
     public void setDecimation(float decimation)
