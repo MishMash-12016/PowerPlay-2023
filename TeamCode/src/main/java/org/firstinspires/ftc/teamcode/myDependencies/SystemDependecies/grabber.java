@@ -20,15 +20,15 @@ public class grabber {
     // endregion
 
     // region CONSTANTS
-    private static final double middlePosition = 0.26;
-    private static final double inPosition     = 0.09;
+    private static final double middlePosition = 0.43;
+    private static final double inPosition     = 0.3;
     //                                             low -  -  -  -  -  -  - high
-    private static final double[] pilePositions = {0.76, 0.72, 0.69, 0.65, 0.61};
+    private static final double[] pilePositions = {1, 0.72, 0.69, 0.65, 0.61};
 
 
-    private static final double grabPosition = 0.48;
-    private static final double midReleasePosition = 0.48;
-    private static final double releasePosition = 0.225;
+    private static final double grabPosition = 0.16;
+    private static final double midReleasePosition = 0.16;
+    private static final double releasePosition = 0.45;
 
     private static final double coneDistanceCatchTrigger = 8.5;
     private static final double coneInDistance = 3;
@@ -41,19 +41,19 @@ public class grabber {
 
         fullRelease();
 
-        rightServo = RobotSystem.hardwareMap.servo.get("placerRight");
-        leftServo  = RobotSystem.hardwareMap.servo.get("placerLeft" );
+        rightServo = RobotSystem.hardwareMap.servo.get("grabberRight");
+        leftServo  = RobotSystem.hardwareMap.servo.get("grabberLeft" );
 
         rightServo.setDirection(Servo.Direction.REVERSE);
 
-        setPosition(inPosition);
+        goToIn();
         // endregion
 
         // region SENSOR
-        isOutSensor = RobotSystem.hardwareMap.get(DigitalChannel.class, "grabberOutSensor");
+        isOutSensor = RobotSystem.hardwareMap.get(DigitalChannel.class, "grabberIsOutSensor");
         isOutSensor.setMode(DigitalChannel.Mode.INPUT);
 
-        distanceFromConeSensor = RobotSystem.hardwareMap.get(DistanceSensor.class, "grabberDistanceSensor");
+        distanceFromConeSensor = RobotSystem.hardwareMap.get(DistanceSensor.class, "grabberDistanceToConeSensor");
         // endregion
     }
     // endregion

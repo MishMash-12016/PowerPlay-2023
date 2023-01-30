@@ -16,8 +16,8 @@ public class arm {
     // endregion
 
     // region CONSTANTS
-    public static final double outPosition = 0.89;
-    public static final double inPosition  = 0.5 ;
+    public static final double outPosition = 0.05;
+    public static final double inPosition  = 0.45 ;
     // endregion
 
     // region INITIALIZATION
@@ -28,11 +28,11 @@ public class arm {
 
         leftServo.setDirection(Servo.Direction.REVERSE);
 
-        setPosition(inPosition);
+        goToRelativePosition(0);
         // endregion
 
         // region SENSOR
-        isArmOut = RobotSystem.hardwareMap.get(DigitalChannel.class, "armSensor");
+        isArmOut = RobotSystem.hardwareMap.get(DigitalChannel.class, "armIsOutSensor");
         isArmOut.setMode(DigitalChannel.Mode.INPUT);
         // endregion
     }

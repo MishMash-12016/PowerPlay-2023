@@ -53,7 +53,7 @@ public class driveTrain {
         // initializing the imu
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
 
-        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
         parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
         parameters.calibrationDataFile = "BNO055IMUCalibration.json";
         parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
@@ -82,8 +82,8 @@ public class driveTrain {
 
         while(!RobotSystem.isStopRequested && !driveTrain.controller.isInterrupted()) {
             // region GET THE ORIGINAL DIRECTION INPUT
-            x = RobotSystem.gamepad1.left_stick_x;
-            y = RobotSystem.gamepad1.left_stick_y;
+            x =  RobotSystem.gamepad1.left_stick_x;
+            y = -RobotSystem.gamepad1.left_stick_y;
             // endregion
 
             // region MAKE IT FIELD ORIENTED
@@ -111,7 +111,7 @@ public class driveTrain {
             // endregion
         }
 
-        reset();
+        driveTrain.reset();
     });
     // endregion
 

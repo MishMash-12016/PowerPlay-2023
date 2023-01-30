@@ -29,8 +29,7 @@ public class elevator {
     // region VARIABLES
     public static double wantedPosition;
 
-    private static double power;
-    private static boolean isControllerActive;
+    private static double motorPower;
     // endregion
 
     // region INITIALIZATION
@@ -46,34 +45,33 @@ public class elevator {
         // endregion
 
         // region SENSOR
-        isUpSensor = RobotSystem.hardwareMap.get(DigitalChannel.class, "elevatorSensor");
+        isUpSensor = RobotSystem.hardwareMap.get(DigitalChannel.class, "elevatorIsUpSensor");
         isUpSensor.setMode(DigitalChannel.Mode.INPUT);
         // endregion
 
-        reset();
+        elevator.reset();
     }
 
     public static void reset(){
+        motorPower = 0;
         wantedPosition = 0;
-        power    = 0;
-        isControllerActive = false;
     }
     // endregion
 
     // region FUNCTIONALITY
     public static Thread controller = new Thread(() -> {
-        reset();
-        isControllerActive = true;
-        while (isControllerActive && !RobotSystem.isStopRequested){
-            power = calculatePower();
-            if (power >  1) power =  1;
-            if (power < -1) power = -1;
+        elevator.reset();
+        while (!RobotSystem.isStopRequested && !elevator.controller.isInterrupted()){
+            motorPower = calculatePower();
+
+            if (motorPower >  1) motorPower =  1;
+            if (motorPower < -1) motorPower = -1;
 
             // make the elevator weaker when coming down to compensate for gravity
-            if (power < 0) power /= 2;
+            if (motorPower < 0) motorPower /= 2;
 
             // set the elevator power into the elevator motors
-            setPower(power);
+            setMotorPower(motorPower);
         }
     });
     public static boolean isUp(){
@@ -85,9 +83,9 @@ public class elevator {
     // endregion
 
     // region PRIVATE FUNCTIONALITY
-    private static void setPower(double power){
-        motorLeft.setPower(power);
-        motorRight.setPower(power);
+    private static void setMotorPower(double motorPower){
+        motorLeft.setPower(motorPower);
+        motorRight.setPower(motorPower);
     }
     private static double calculatePower(){
         return (wantedPosition - motorLeft.getCurrentPosition()) / 2300.0;

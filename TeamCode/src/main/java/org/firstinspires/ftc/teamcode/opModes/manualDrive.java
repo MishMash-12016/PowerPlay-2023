@@ -16,5 +16,9 @@ public class manualDrive extends LinearOpMode{
         resetRuntime();
 
         RobotSystem.startAllControllers();
+
+        while (opModeIsActive()){}
+
+        RobotSystem.terminate();
     }
 }

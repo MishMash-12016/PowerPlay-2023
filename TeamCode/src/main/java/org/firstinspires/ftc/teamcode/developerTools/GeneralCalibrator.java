@@ -21,13 +21,16 @@ public class GeneralCalibrator extends LinearOpMode {
         String[] names = {
                 "grabber",
                 "puffer",
-                "placerRight\nplacerLeft",
+                "pufferRight\npufferLeft",
                 "armRight\narmLeft",
                 "grabberLeft\ngrabberRight"
         };
 
 
         int i = 0;
+
+        double position = 0;
+        double sensitivity = 1;
 
         while (opModeIsActive() && !gamepad1.a){
             if (B_Pressed()) {
@@ -39,13 +42,11 @@ public class GeneralCalibrator extends LinearOpMode {
             i = (i + names.length) % names.length;
 
             telemetry.addLine(names[i]);
+            telemetry.addData("position", position - gamepad1.left_stick_y * sensitivity);
             telemetry.update();
         }
 
         sleep(500);
-
-        double position = 0;
-        double sensitivity = 1;
 
         String[] name = names[i].split("\n");
 

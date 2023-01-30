@@ -12,12 +12,12 @@ public class puffer {
     // endregion
 
     // region CONSTANTS
-    private static final double inPosition  = 0   ;
-    private static final double midPosition = 0.2 ;
-    private static final double outPosition = 0.75;
+    private static final double inPosition  = 0.14;
+    private static final double midPosition = 0.5 ;
+    private static final double outPosition = 0.95;
 
-    private static final double grabPosition    = 0.14;
-    private static final double releasePosition = 0   ;
+    private static final double grabPosition    = 0.3;
+    private static final double releasePosition = 0.2;
     // endregion
 
     // region INITIALIZATION
@@ -26,12 +26,12 @@ public class puffer {
 
         release();
 
-        rightServo = RobotSystem.hardwareMap.servo.get("placerRight");
-        leftServo  = RobotSystem.hardwareMap.servo.get("placerLeft" );
+        rightServo = RobotSystem.hardwareMap.servo.get("pufferRight");
+        leftServo  = RobotSystem.hardwareMap.servo.get("pufferLeft" );
 
         rightServo.setDirection(Servo.Direction.REVERSE);
 
-        setPosition(inPosition);
+        goToIn();
     }
     // endregion
 

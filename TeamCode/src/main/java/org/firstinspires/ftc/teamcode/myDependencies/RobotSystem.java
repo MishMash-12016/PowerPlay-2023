@@ -18,12 +18,12 @@ public class RobotSystem {
     public static Gamepad gamepad2;
     public static Telemetry telemetry;
     public static HardwareMap hardwareMap;
-    // endregion SYSTEM CONSTANTS
+    // endregion
 
     // region SYSTEM VARIABLES
     public static boolean isStopRequested;
     public static int currentConeHeight;
-    // endregion SYSTEM VARIABLES
+    // endregion
 
     // region INITIALIZATION
     public static void initialize(HardwareMap hardwareMap, Telemetry telemetry, Gamepad gamepad1, Gamepad gamepad2){
@@ -36,19 +36,19 @@ public class RobotSystem {
         currentConeHeight = 0;
 
         arm.initialize();
-        driveTrain.initialize();
-        elevator.initialize();
-        grabber.initialize();
         puffer.initialize();
+        grabber.initialize();
+        elevator.initialize();
+        driveTrain.initialize();
 
     }
     // endregion
 
     // region SYSTEM FUNCTIONALITY
     public static void startAllControllers(){
+        RobotSystem.cycleController.start();
         driveTrain.controller.start();
         elevator.controller.start();
-        cycleController.start();
     }
 
     public static void terminate(){
@@ -58,7 +58,7 @@ public class RobotSystem {
 
         telemetry.update();
     }
-    // endregion SYSTEM FUNCTIONALITY
+    // endregion
 
     // region GENERAL FUNCTIONALITY
     private static final ElapsedTime timePassed = new ElapsedTime();
@@ -132,16 +132,16 @@ public class RobotSystem {
             return false;
         }
     }
-    // endregion GENERAL FUNCTIONALITY
+    // endregion
 
     // region DRIVER CONTROLLED FUNCTIONS
     private static final Thread cycleController = new Thread(() -> {
         while (!isStopRequested && !RobotSystem.cycleController.isInterrupted()) {
-            if (!manual.collect.isAlive() && (gamepad1.left_trigger > 0 || gamepad1.left_bumper)) {
+            if (!manual.asyncCollect.isAlive() && (gamepad1.left_trigger > 0 || gamepad1.left_bumper)) {
                 manual.collect();
             }
 
-            if (!manual.score.isAlive()) {
+            if (!manual.asyncScore.isAlive()) {
                 if (FirstPress.A()) { manual.score(elevator.highPosition); }
                 else if (FirstPress.X()) { manual.score(elevator.middlePosition); }
                 else if (FirstPress.Y()) { manual.score(elevator.lowPosition); }
@@ -151,17 +151,19 @@ public class RobotSystem {
     });
 
     static class manual{
-        public static void collect() {collect.start();}
+        public static void collect() {
+            asyncCollect.start();
+        }
         public static void score(double height) {
             elevator.wantedPosition = height;
-            score.start();
+            asyncScore.start();
         }
 
-        private static final Thread collect = new Thread(() -> {
+        private static final Thread asyncCollect = new Thread(() -> {
             try {
                 grabber.goToCone(currentConeHeight);
                 grabber.fullRelease();
-                while (!RobotSystem.manual.collect.isInterrupted() && !isStopRequested && (gamepad1.left_trigger > 0 || gamepad1.left_bumper)) {
+                while (!RobotSystem.manual.asyncCollect.isInterrupted() && !isStopRequested && (gamepad1.left_trigger > 0 || gamepad1.left_bumper)) {
                     arm.goToRelativePosition(gamepad1.left_trigger);
 
                     if (grabber.coneIsInRange()) {
@@ -174,7 +176,7 @@ public class RobotSystem {
                     throw hardStopRequest;
                 }
 
-                if (RobotSystem.manual.collect.isInterrupted()){
+                if (RobotSystem.manual.asyncCollect.isInterrupted()){
                     throw softStopRequest;
                 }
 
@@ -194,6 +196,14 @@ public class RobotSystem {
                     sleep(300);
 
                     puffer.goToMid();
+
+                    sleep(300);
+
+                    puffer.release();
+
+                    sleep(500);
+
+                    puffer.grab();
                 } else {
                     arm.goToRelativePosition(0);
                     grabber.midRelease();
@@ -210,20 +220,20 @@ public class RobotSystem {
                 }
             }
         });
-        private static final Thread score = new Thread(()-> {
+        private static final Thread asyncScore = new Thread(()-> {
             try {
                 await(elevator::reachedWantedPosition);
                 puffer.goToOut();
 
-                await(() -> gamepad1.right_trigger > 0 || manual.score.isInterrupted());
+                await(() -> gamepad1.right_trigger > 0 || manual.asyncScore.isInterrupted());
 
-                if (manual.score.isInterrupted()){
+                if (manual.asyncScore.isInterrupted()){
                     throw softStopRequest;
                 }
 
                 puffer.release();
 
-                await(() -> gamepad1.right_trigger == 0 || manual.score.isInterrupted());
+                await(() -> gamepad1.right_trigger == 0 || manual.asyncScore.isInterrupted());
 
                 throw softStopRequest;
             }catch (InterruptedException e1){
@@ -247,7 +257,7 @@ public class RobotSystem {
             }
         });
     }
-    // endregion DRIVER CONTROLLED FUNCTIONS
+    // endregion
 
     // region AUTONOMOUS FUNCTIONS
     static class auto{
@@ -258,5 +268,5 @@ public class RobotSystem {
         private void score(boolean prepareForNext, int nextConeNum){}
         private void collect(int coneNum){}
     }
-    // endregion AUTONOMOUS FUNCTIONS
+    // endregion
 }
