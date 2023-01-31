@@ -39,7 +39,7 @@ public class grabber {
         // region SERVOS
         grabberServo = RobotSystem.hardwareMap.servo.get("grabber");
 
-        fullRelease();
+        midRelease();
 
         rightServo = RobotSystem.hardwareMap.servo.get("grabberRight");
         leftServo  = RobotSystem.hardwareMap.servo.get("grabberLeft" );
@@ -79,6 +79,10 @@ public class grabber {
 
     public static double distanceReading(){
         return distanceFromConeSensor.getDistance(DistanceUnit.CM);
+    }
+
+    public static String deBug(){
+        return "left servo position : " + leftServo.getPosition() + "\nright servo position : " + rightServo.getPosition();
     }
     // endregion
 

@@ -26,21 +26,36 @@ public class RobotSystem {
     // endregion
 
     // region INITIALIZATION
-    public static void initialize(HardwareMap hardwareMap, Telemetry telemetry, Gamepad gamepad1, Gamepad gamepad2){
-        RobotSystem.hardwareMap = hardwareMap;
-        RobotSystem.telemetry   = telemetry  ;
-        RobotSystem.gamepad1    = gamepad1   ;
-        RobotSystem.gamepad2    = gamepad2   ;
+    public static void initializeAll(HardwareMap hardwareMap, Telemetry telemetry, Gamepad gamepad1, Gamepad gamepad2){
+        resetAll();
 
-        isStopRequested = false;
-        currentConeHeight = 0;
+        RobotSystem.initialize(hardwareMap, telemetry, gamepad1, gamepad2);
 
         arm.initialize();
         puffer.initialize();
         grabber.initialize();
         elevator.initialize();
         driveTrain.initialize();
+    }
+    public static void resetAll(){
+        RobotSystem.reset();
 
+        led.reset();
+        elevator.reset();
+        driveTrain.reset();
+    }
+
+    public static void initialize(HardwareMap hardwareMap, Telemetry telemetry, Gamepad gamepad1, Gamepad gamepad2){
+        RobotSystem.reset();
+
+        RobotSystem.hardwareMap = hardwareMap;
+        RobotSystem.telemetry   = telemetry  ;
+        RobotSystem.gamepad1    = gamepad1   ;
+        RobotSystem.gamepad2    = gamepad2   ;
+    }
+    public static void reset(){
+        isStopRequested = false;
+        currentConeHeight = 0;
     }
     // endregion
 

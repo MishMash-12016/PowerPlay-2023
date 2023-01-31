@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.myDependencies.RobotSystem;
 public class manualDrive extends LinearOpMode{
     @Override
     public void runOpMode() {
-        RobotSystem.initialize(hardwareMap, telemetry, gamepad1, gamepad2);
+        RobotSystem.initializeAll(hardwareMap, telemetry, gamepad1, gamepad2);
 
         waitForStart();
         if (isStopRequested()) return;

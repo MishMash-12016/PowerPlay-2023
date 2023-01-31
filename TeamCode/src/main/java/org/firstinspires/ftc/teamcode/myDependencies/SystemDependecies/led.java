@@ -8,6 +8,9 @@ import org.opencv.core.Scalar;
 
 public class led {
     private static RevBlinkinLedDriver l = RobotSystem.hardwareMap.get(RevBlinkinLedDriver.class, "led");
+    public static void reset(){
+
+    }
     public static void setColor(){
         l.setPattern(RevBlinkinLedDriver.BlinkinPattern.WHITE);
     }

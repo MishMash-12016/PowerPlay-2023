@@ -14,12 +14,11 @@ public class elevator {
     // endregion
 
     // region CONSTANTS
-    public static final int highPosition   = 19500;
-    public static final int middlePosition = 12000;
-    public static final int lowPosition    = 5000 ;
+    public static final int highPosition   = 17000;
+    public static final int middlePosition = 11000;
+    public static final int lowPosition    = 4000 ;
     public static final int bottomPosition = 0    ;
 
-    public static final int marginOfError = 400;
     // endregion
 
     // region SENSOR
@@ -35,7 +34,7 @@ public class elevator {
     // region INITIALIZATION
     public static void initialize() {
         // region MOTORS
-        motorLeft = (DcMotorEx) RobotSystem.hardwareMap.dcMotor.get("elevatorLeft");
+        motorLeft  = (DcMotorEx) RobotSystem.hardwareMap.dcMotor.get("elevatorLeft" );
         motorRight = (DcMotorEx) RobotSystem.hardwareMap.dcMotor.get("elevatorRight");
 
         motorRight.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -60,19 +59,11 @@ public class elevator {
 
     // region FUNCTIONALITY
     public static Thread controller = new Thread(() -> {
-        elevator.reset();
         while (!RobotSystem.isStopRequested && !elevator.controller.isInterrupted()){
-            motorPower = calculatePower();
-
-            if (motorPower >  1) motorPower =  1;
-            if (motorPower < -1) motorPower = -1;
-
-            // make the elevator weaker when coming down to compensate for gravity
-            if (motorPower < 0) motorPower /= 2;
-
-            // set the elevator power into the elevator motors
-            setMotorPower(motorPower);
+            setMotorPower(calculatePower(motorLeft.getCurrentPosition() - wantedPosition));
         }
+        setMotorPower(0);
+        elevator.reset();
     });
     public static boolean isUp(){
         return isUpSensor.getState();
@@ -80,16 +71,48 @@ public class elevator {
     public static boolean reachedWantedPosition(){
         return marginOfError < Math.abs(wantedPosition - getCurrentPosition());
     }
+
+    public static String deBug(){
+        return "left motor power : " + motorLeft.getPower() + "\nright motor power : " + motorRight.getPower() + "\nheight : " + motorLeft.getCurrentPosition();
+    }
     // endregion
 
     // region PRIVATE FUNCTIONALITY
     private static void setMotorPower(double motorPower){
-        motorLeft.setPower(motorPower);
+        motorLeft .setPower(motorPower);
         motorRight.setPower(motorPower);
     }
-    private static double calculatePower(){
-        return (wantedPosition - motorLeft.getCurrentPosition()) / 2300.0;
+    private static final double marginOfError = 100;
+    private static final double smoothness    = 500;
+    private static final double holdingPower  = 0.3;
+
+    private static double calculatePower(double x){
+        if (isUp() || wantedPosition != 0){
+            return 0;
+        }
+
+        if (Math.abs(x) < marginOfError){
+            return holdingPower;
+        } else if (x > smoothness * 4 + marginOfError){
+            return 0;
+        } else if (-x > smoothness + marginOfError){
+            return 1;
+        }
+
+        if (x > 0){
+            x -= marginOfError;
+        } else {
+            x += marginOfError;
+        }
+
+
+        if (x > 0){
+            return ((Math.cos((x) * Math.PI / smoothness / 4) - 1) / 2) * holdingPower + holdingPower;
+        } else {
+            return ((1 - Math.cos(x * Math.PI / smoothness)) / 2) * (1 - holdingPower) + holdingPower;
+        }
     }
+
     private static double getCurrentPosition() {
         return motorLeft.getCurrentPosition();
     }
