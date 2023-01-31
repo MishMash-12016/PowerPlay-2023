@@ -23,7 +23,7 @@ public class GeneralCalibrator extends LinearOpMode {
                 "puffer",
                 "pufferRight\npufferLeft",
                 "armRight\narmLeft",
-                "grabberLeft\ngrabberRight"
+                "grabberRight\ngrabberLeft"
         };
 
 

@@ -62,8 +62,8 @@ public class RobotSystem {
     // region SYSTEM FUNCTIONALITY
     public static void startAllControllers(){
         RobotSystem.cycleController.start();
-        driveTrain.controller.start();
-        elevator.controller.start();
+        //driveTrain.controller.start();
+        //elevator.controller.start();
     }
 
     public static void terminate(){

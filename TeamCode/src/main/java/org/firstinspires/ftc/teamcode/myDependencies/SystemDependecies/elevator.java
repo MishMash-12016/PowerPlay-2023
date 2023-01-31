@@ -37,7 +37,7 @@ public class elevator {
         motorLeft  = (DcMotorEx) RobotSystem.hardwareMap.dcMotor.get("elevatorLeft" );
         motorRight = (DcMotorEx) RobotSystem.hardwareMap.dcMotor.get("elevatorRight");
 
-        motorRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        //motorRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         motorLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motorLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -54,6 +54,10 @@ public class elevator {
     public static void reset(){
         motorPower = 0;
         wantedPosition = 0;
+
+        if (motorLeft != null){
+            setMotorPower(0);
+        }
     }
     // endregion
 
@@ -62,14 +66,13 @@ public class elevator {
         while (!RobotSystem.isStopRequested && !elevator.controller.isInterrupted()){
             setMotorPower(calculatePower(motorLeft.getCurrentPosition() - wantedPosition));
         }
-        setMotorPower(0);
         elevator.reset();
     });
     public static boolean isUp(){
         return isUpSensor.getState();
     }
     public static boolean reachedWantedPosition(){
-        return marginOfError < Math.abs(wantedPosition - getCurrentPosition());
+        return marginOfError > Math.abs(wantedPosition - getCurrentPosition());
     }
 
     public static String deBug(){

@@ -7,7 +7,7 @@ import org.firstinspires.ftc.teamcode.myDependencies.RobotSystem;
 import org.opencv.core.Scalar;
 
 public class led {
-    private static RevBlinkinLedDriver l = RobotSystem.hardwareMap.get(RevBlinkinLedDriver.class, "led");
+    private static RevBlinkinLedDriver l;
     public static void reset(){
 
     }

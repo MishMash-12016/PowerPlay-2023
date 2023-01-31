@@ -16,12 +16,13 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class Test extends LinearOpMode {
     @Override
     public void runOpMode() {
+
         waitForStart();
         if (isStopRequested()) return;
         resetRuntime();
 
         while (opModeIsActive()) {
+            telemetry.addData("trigger", gamepad1.left_trigger);
         }
-
     }
 }
