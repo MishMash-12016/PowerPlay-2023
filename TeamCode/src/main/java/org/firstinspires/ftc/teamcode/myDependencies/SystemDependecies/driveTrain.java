@@ -31,7 +31,7 @@ public class driveTrain {
     // region VARIABLES
     private static double drivingStrength;
     private static double turningStrength;
-    public  static double  startingAngle;
+    public  static double startingAngle;
     // endregion
 
     // region INITIALIZATION
@@ -110,8 +110,6 @@ public class driveTrain {
                     DrivingPowerA + turningPower);
             // endregion
         }
-
-        driveTrain.reset();
     });
     // endregion
 

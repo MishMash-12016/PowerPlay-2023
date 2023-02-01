@@ -27,8 +27,6 @@ public class RobotSystem {
 
     // region INITIALIZATION
     public static void initializeAll(HardwareMap hardwareMap, Telemetry telemetry, Gamepad gamepad1, Gamepad gamepad2){
-        resetAll();
-
         RobotSystem.initialize(hardwareMap, telemetry, gamepad1, gamepad2);
 
         arm.initialize();
@@ -68,8 +66,7 @@ public class RobotSystem {
 
     public static void terminate(){
         isStopRequested = true;
-        driveTrain.reset();
-        elevator.reset();
+        resetAll();
 
         telemetry.update();
     }

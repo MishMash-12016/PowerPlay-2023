@@ -47,8 +47,6 @@ public class elevator {
         isUpSensor = RobotSystem.hardwareMap.get(DigitalChannel.class, "elevatorIsUpSensor");
         isUpSensor.setMode(DigitalChannel.Mode.INPUT);
         // endregion
-
-        elevator.reset();
     }
 
     public static void reset(){
@@ -66,7 +64,6 @@ public class elevator {
         while (!RobotSystem.isStopRequested && !elevator.controller.isInterrupted()){
             setMotorPower(calculatePower(motorLeft.getCurrentPosition() - wantedPosition));
         }
-        elevator.reset();
     });
     public static boolean isUp(){
         return isUpSensor.getState();
