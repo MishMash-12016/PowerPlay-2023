@@ -212,18 +212,7 @@ public class RobotSystem {
 
                 if (grabber.hasCone()) {
                     puffer.grab();
-
-                    sleep(300);
-
                     puffer.goToMid();
-
-                    sleep(300);
-
-                    puffer.release();
-
-                    sleep(500);
-
-                    puffer.grab();
                 }
 
             }catch (Exception e){
