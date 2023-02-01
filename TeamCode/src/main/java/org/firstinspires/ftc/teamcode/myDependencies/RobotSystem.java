@@ -151,12 +151,10 @@ public class RobotSystem {
                 manual.collect();
             }
 
-            if (!manual.asyncScore.isAlive()) {
-                if (FirstPress.A()) { manual.score(elevator.highPosition); }
-                else if (FirstPress.X()) { manual.score(elevator.middlePosition); }
-                else if (FirstPress.Y()) { manual.score(elevator.lowPosition); }
-            }
-            else if (FirstPress.B()){ elevator.setWantedPosition(elevator.bottomPosition); }
+            if      (FirstPress.A()) { manual.score(elevator.highPosition); }
+            else if (FirstPress.X()) { manual.score(elevator.middlePosition); }
+            else if (FirstPress.Y()) { manual.score(elevator.lowPosition); }
+            else if (FirstPress.B()) { elevator.setWantedPosition(elevator.bottomPosition); }
         }
     });
 
@@ -166,7 +164,9 @@ public class RobotSystem {
         }
         public static void score(int height) {
             elevator.setWantedPosition(height);
-            asyncScore.start();
+            if (!manual.asyncScore.isAlive()){
+                asyncScore.start();
+            }
         }
 
         public static final Thread asyncCollect = new Thread(() -> {

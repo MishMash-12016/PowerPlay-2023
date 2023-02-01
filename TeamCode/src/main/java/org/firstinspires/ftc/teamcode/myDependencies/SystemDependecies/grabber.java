@@ -31,7 +31,7 @@ public class grabber {
     private static final double releasePosition = 0.16;
 
     private static final double coneDistanceCatchTrigger = 8.5;
-    private static final double coneInDistance = 5;
+    private static final double coneInDistance = 3.5;
     // endregion
 
     // region INITIALIZATION
