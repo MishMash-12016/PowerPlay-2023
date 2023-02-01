@@ -13,12 +13,15 @@ public class elevator {
     private static DcMotorEx motorLeft ;
     // endregion
 
-    // region CONSTANTS
-    public static final int highPosition   = 17000;
+// region CONSTANTS
+    public static final int highPosition   = 17500;
     public static final int middlePosition = 11000;
     public static final int lowPosition    = 4000 ;
     public static final int bottomPosition = 0    ;
 
+    private static final double marginOfError = 100;
+    private static final double smoothness    = 250;
+    private static final double holdingPower  = 0.3;
     // endregion
 
     // region SENSOR
@@ -37,7 +40,7 @@ public class elevator {
         motorLeft  = (DcMotorEx) RobotSystem.hardwareMap.dcMotor.get("elevatorLeft" );
         motorRight = (DcMotorEx) RobotSystem.hardwareMap.dcMotor.get("elevatorRight");
 
-        //motorRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        motorRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         motorLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motorLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -46,6 +49,11 @@ public class elevator {
         // region SENSOR
         isUpSensor = RobotSystem.hardwareMap.get(DigitalChannel.class, "elevatorIsUpSensor");
         isUpSensor.setMode(DigitalChannel.Mode.INPUT);
+        // endregion
+
+        // region VARIABLES
+        motorPower = 0;
+        wantedPosition = 0;
         // endregion
     }
 
@@ -65,15 +73,29 @@ public class elevator {
             setMotorPower(calculatePower(motorLeft.getCurrentPosition() - wantedPosition));
         }
     });
+
+    public static void setWantedPosition(int newWantedPosition){
+        wantedPosition = newWantedPosition;
+
+        if (wantedPosition == elevator.bottomPosition){
+            driveTrain.fastMode();
+            RobotSystem.manual.asyncScore.interrupt();
+        } else {
+            driveTrain.slowMode();
+        }
+    }
+
     public static boolean isUp(){
         return isUpSensor.getState();
     }
-    public static boolean reachedWantedPosition(){
-        return marginOfError > Math.abs(wantedPosition - getCurrentPosition());
+    public static boolean almostReachedWantedPosition(){
+        return 1000 > Math.abs(wantedPosition - getCurrentPosition());
     }
 
     public static String deBug(){
-        return "left motor power : " + motorLeft.getPower() + "\nright motor power : " + motorRight.getPower() + "\nheight : " + motorLeft.getCurrentPosition();
+        return "left motor power : " + motorLeft.getPower()
+                + "\nright motor power : " + motorRight.getPower()
+                + "\nheight : " + motorLeft.getCurrentPosition();
     }
     // endregion
 
@@ -82,12 +104,9 @@ public class elevator {
         motorLeft .setPower(motorPower);
         motorRight.setPower(motorPower);
     }
-    private static final double marginOfError = 100;
-    private static final double smoothness    = 500;
-    private static final double holdingPower  = 0.3;
 
     private static double calculatePower(double x){
-        if (isUp() || wantedPosition != 0){
+        if (!isUp() && wantedPosition == 0){
             return 0;
         }
 

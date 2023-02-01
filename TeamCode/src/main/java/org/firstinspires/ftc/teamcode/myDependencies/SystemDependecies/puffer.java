@@ -12,7 +12,7 @@ public class puffer {
     // endregion
 
     // region CONSTANTS
-    private static final double inPosition  = 0.14;
+    private static final double inPosition  = 0.16;
     private static final double midPosition = 0.5 ;
     private static final double outPosition = 0.95;
 

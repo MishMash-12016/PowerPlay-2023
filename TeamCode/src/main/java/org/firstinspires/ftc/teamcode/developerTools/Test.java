@@ -14,15 +14,27 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp
 public class Test extends LinearOpMode {
+    static Thread x;
     @Override
     public void runOpMode() {
+        x = new Thread(() -> {
+            while (!Test.x.isInterrupted()) {
+                telemetry.addData("running", true);
+                telemetry.update();
+            }
+            telemetry.addData("running", false);
+            telemetry.update();
+        });
 
         waitForStart();
         if (isStopRequested()) return;
         resetRuntime();
 
+        x.start();
         while (opModeIsActive()) {
-            telemetry.addData("trigger", gamepad1.left_trigger);
+           if (gamepad1.b){
+               Test.x.interrupt();
+           }
         }
     }
 }

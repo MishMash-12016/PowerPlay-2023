@@ -26,6 +26,13 @@ public class driveTrain {
 
     // region CONSTANTS
     private static final double sq2 = 1.414;
+
+    private static final double fastDrivingStrength = 1;
+    private static final double fastTurningStrength = 1;
+
+    private static final double slowDrivingStrength = 0.4;
+    private static final double slowTurningStrength = 0.2;
+
     // endregion
 
     // region VARIABLES
@@ -60,6 +67,11 @@ public class driveTrain {
 
         imu.initialize(parameters);
         imu.startAccelerationIntegration(new Position(), new Velocity(), 10);
+        // endregion
+
+        // region VARIABLES
+        drivingStrength = 1;
+        turningStrength = 1;
         // endregion
     }
     public static void reset(){
@@ -111,6 +123,15 @@ public class driveTrain {
             // endregion
         }
     });
+
+    public static void slowMode(){
+        drivingStrength = slowDrivingStrength;
+        turningStrength = slowTurningStrength;
+    }
+    public static void fastMode(){
+        drivingStrength = fastDrivingStrength;
+        turningStrength = fastTurningStrength;
+    }
     // endregion
 
     // region PRIVATE FUNCTIONALITY

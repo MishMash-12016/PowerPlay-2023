@@ -20,18 +20,18 @@ public class grabber {
     // endregion
 
     // region CONSTANTS
-    private static final double middlePosition = 0.64;
+    private static final double middlePosition = 0.6;
     private static final double inPosition     = 0.8;
     //                                             low -  -  -  -  -  -  - high
     private static final double[] pilePositions = {0.1, 0.72, 0.69, 0.65, 0.61};
 
 
-    private static final double grabPosition = 0.16;
-    private static final double midReleasePosition = 0.16;
-    private static final double releasePosition = 0.45;
+    private static final double grabPosition = 0.45;
+    private static final double midReleasePosition = 0.19;
+    private static final double releasePosition = 0.16;
 
     private static final double coneDistanceCatchTrigger = 8.5;
-    private static final double coneInDistance = 3;
+    private static final double coneInDistance = 5;
     // endregion
 
     // region INITIALIZATION
@@ -71,10 +71,13 @@ public class grabber {
         return coneDistanceCatchTrigger > distanceFromConeSensor.getDistance(DistanceUnit.CM);
     }
     public static boolean hasCone(){
-        return coneInDistance > distanceFromConeSensor.getDistance(DistanceUnit.CM);
+        return coneInDistance > distanceReading();
     }
     public static boolean isOut() {
         return isOutSensor.getState();
+    }
+    public static boolean isGrabbing() {
+        return grabberServo.getPosition() == grabPosition;
     }
 
     public static double distanceReading(){
@@ -82,7 +85,9 @@ public class grabber {
     }
 
     public static String deBug(){
-        return "left servo position : " + leftServo.getPosition() + "\nright servo position : " + rightServo.getPosition();
+        return "left servo position : " + leftServo.getPosition()
+                + "\nright servo position : " + rightServo.getPosition()
+                + "\nsensor reading : " + distanceReading();
     }
     // endregion
 

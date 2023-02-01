@@ -1,18 +1,11 @@
 package org.firstinspires.ftc.teamcode.developerTools;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import com.sun.tools.javac.util.Pair;
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-
-import java.util.ArrayList;
-
 @TeleOp
-public class GeneralCalibrator extends LinearOpMode {
+public class ServoCalibrator extends LinearOpMode {
 
     @Override
     public void runOpMode() {

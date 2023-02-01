@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.*;
 
+import java.security.spec.ECField;
 import java.util.concurrent.Callable;
 
 public class RobotSystem {
@@ -60,13 +61,13 @@ public class RobotSystem {
     // region SYSTEM FUNCTIONALITY
     public static void startAllControllers(){
         RobotSystem.cycleController.start();
-        //driveTrain.controller.start();
-        //elevator.controller.start();
+        driveTrain.controller.start();
+        elevator.controller.start();
     }
 
     public static void terminate(){
-        isStopRequested = true;
         resetAll();
+        isStopRequested = true;
 
         telemetry.update();
     }
@@ -76,7 +77,7 @@ public class RobotSystem {
     private static final ElapsedTime timePassed = new ElapsedTime();
     public static void sleep(int wantedSleepTime) throws InterruptedException{
         timePassed.reset();
-        while(wantedSleepTime < timePassed.milliseconds()){
+        while(wantedSleepTime > timePassed.milliseconds()){
             if (isStopRequested) {
                 throw hardStopRequest;
             }
@@ -84,18 +85,15 @@ public class RobotSystem {
         }
     }
     public static void await(Callable<Boolean> requirement) throws Exception{
-        try {
-            while (requirement.call() && !isStopRequested) {
+        try{
+            while (!requirement.call() && !isStopRequested) {
                 Thread.sleep(20);
-                if (isStopRequested) {
-                    throw hardStopRequest;
-                }
             }
-        } catch (Exception e){
-            if (e != hardStopRequest && e != softStopRequest) {
-                telemetry.addData("await got this exception", e);
-                throw e;
-            }
+        }catch (Exception e){
+            throw softStopRequest;
+        }
+        if (isStopRequested) {
+            throw hardStopRequest;
         }
     }
 
@@ -158,31 +156,39 @@ public class RobotSystem {
                 else if (FirstPress.X()) { manual.score(elevator.middlePosition); }
                 else if (FirstPress.Y()) { manual.score(elevator.lowPosition); }
             }
-            else if (FirstPress.B()){ elevator.wantedPosition = elevator.bottomPosition; }
+            else if (FirstPress.B()){ elevator.setWantedPosition(elevator.bottomPosition); }
         }
     });
 
-    static class manual{
+    public static class manual{
         public static void collect() {
             asyncCollect.start();
         }
-        public static void score(double height) {
-            elevator.wantedPosition = height;
+        public static void score(int height) {
+            elevator.setWantedPosition(height);
             asyncScore.start();
         }
 
-        private static final Thread asyncCollect = new Thread(() -> {
+        public static final Thread asyncCollect = new Thread(() -> {
             try {
+                driveTrain.slowMode();
                 grabber.goToCone(currentConeHeight);
                 grabber.fullRelease();
                 while (!RobotSystem.manual.asyncCollect.isInterrupted() && !isStopRequested && (gamepad1.left_trigger > 0 || gamepad1.left_bumper)) {
                     arm.goToRelativePosition(gamepad1.left_trigger);
 
                     if (grabber.coneIsInRange()) {
-                        grabber.grab();
+                        if (!grabber.isGrabbing()) {
+                            grabber.grab();
+                        }
+                    } else {
+                        if (grabber.isGrabbing()) {
+                            grabber.fullRelease();
+                        }
                     }
                 }
 
+                driveTrain.fastMode();
 
                 if (isStopRequested){
                     throw hardStopRequest;
@@ -192,17 +198,19 @@ public class RobotSystem {
                     throw softStopRequest;
                 }
 
+                grabber.goToMid();
+
+                arm.goToRelativePosition(0);
+
+                await(() -> !arm.isOut() && !elevator.isUp());
+
+                grabber.goToIn();
+
+                await(() -> !grabber.isOut());
+
+                grabber.midRelease();
+
                 if (grabber.hasCone()) {
-                    arm.goToRelativePosition(0);
-                    grabber.goToMid();
-
-                    await(() -> !arm.isOut() && !elevator.isUp());
-
-                    grabber.goToIn();
-
-                    await(() -> !grabber.isOut());
-
-                    grabber.midRelease();
                     puffer.grab();
 
                     sleep(300);
@@ -216,10 +224,6 @@ public class RobotSystem {
                     sleep(500);
 
                     puffer.grab();
-                } else {
-                    arm.goToRelativePosition(0);
-                    grabber.midRelease();
-                    grabber.goToIn();
                 }
 
             }catch (Exception e){
@@ -229,15 +233,17 @@ public class RobotSystem {
                     grabber.goToIn();
                 } else if (e != hardStopRequest){
                     telemetry.addData("stopped manual collect completely", e);
+                    telemetry.update();
                 }
             }
         });
-        private static final Thread asyncScore = new Thread(()-> {
+        public static final Thread asyncScore = new Thread(()-> {
             try {
-                await(elevator::reachedWantedPosition);
+                await(elevator::almostReachedWantedPosition);
+
                 puffer.goToOut();
 
-                await(() -> gamepad1.right_trigger > 0 || manual.asyncScore.isInterrupted());
+                await(() -> (gamepad1.right_trigger > 0 || RobotSystem.manual.asyncScore.isInterrupted()));
 
                 if (manual.asyncScore.isInterrupted()){
                     throw softStopRequest;
@@ -245,34 +251,36 @@ public class RobotSystem {
 
                 puffer.release();
 
-                await(() -> gamepad1.right_trigger == 0 || manual.asyncScore.isInterrupted());
+                await(() -> gamepad1.right_trigger == 0 || RobotSystem.manual.asyncScore.isInterrupted());
 
                 throw softStopRequest;
             }catch (InterruptedException e1){
-                if (e1 == softStopRequest){
+                if (e1.equals(softStopRequest)){
                     try {
                         puffer.goToIn();
 
                         sleep(200);
 
-                        elevator.wantedPosition = elevator.bottomPosition;
+                        elevator.setWantedPosition(elevator.bottomPosition);
 
                         await(() -> !elevator.isUp());
 
                         puffer.release();
                     } catch (Exception e2){
                         telemetry.addData("stopped manual score from safely stopping", e2);
+                        telemetry.update();
                     }
                 }
             } catch (Exception e){
                 telemetry.addData("stopped manual score completely", e);
+                telemetry.update();
             }
         });
     }
     // endregion
 
     // region AUTONOMOUS FUNCTIONS
-    static class auto{
+    public static class auto{
         public static final Thread autoCycle = new Thread(() -> {
 
         });
