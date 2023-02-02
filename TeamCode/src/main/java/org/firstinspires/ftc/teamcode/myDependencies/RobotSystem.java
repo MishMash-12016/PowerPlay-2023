@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.myDependencies;
 
+import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.*;
+import org.firstinspires.ftc.teamcode.roadRunnerDependencies.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.roadRunnerDependencies.trajectorysequence.TrajectorySequence;
 
 import java.util.concurrent.Callable;
@@ -273,13 +275,118 @@ public class RobotSystem {
     // endregion
 
     // region AUTONOMOUS FUNCTIONS
+    /*
+        Pose2d scorePose = new Pose2d(36.0, 12.0, Math.toRadians(Math.toRadians(-140.0)));
+        Pose2d startPose  = new Pose2d(30.7, 61.4, Math.toRadians(Math.toRadians(-90.0)));
+
+        Pose2d score_to_parking1_tempPose_1 = new Pose2d(36.0, 24.0, Math.toRadians(90.0));
+        Pose2d parking1Pose = new Pose2d(48.0, 36.0, Math.toRadians(0.0));
+
+        TrajectorySequence score_to_parking1_trajectory = drive.trajectorySequenceBuilder(scorePose).
+                setTangent(Math.toRadians(90.0)).
+                splineToLinearHeading(score_to_parking1_tempPose_1, Math.toRadians(-90.0)).
+                splineToLinearHeading(parking1Pose, Math.toRadians(0.0)).build();
+
+        Pose2d parking2Pose = new Pose2d(36.0, 24.0, Math.toRadians(90.0));
+
+        TrajectorySequence score_to_parking2_trajectory = drive.trajectorySequenceBuilder(scorePose).
+                setTangent(Math.toRadians(90.0)).
+                splineToLinearHeading(parking2Pose, Math.toRadians(-90.0)).build();
+
+        Pose2d score_to_parking3_tempPose_1 = new Pose2d(36.0, 24.0, Math.toRadians(90.0));
+        Pose2d parking3Pose = new Pose2d(24.0, 36.0, Math.toRadians(180.0));
+
+        TrajectorySequence score_to_parking3_trajectory = drive.trajectorySequenceBuilder(scorePose).
+                setTangent(Math.toRadians(90.0)).
+                splineToLinearHeading(score_to_parking3_tempPose_1, Math.toRadians(-90.0)).
+                splineToLinearHeading(parking3Pose, Math.toRadians(0.0)).build();
+
+        Pose2d start_to_score_tempPose_1 = new Pose2d(36.0, 46.0, Math.toRadians(-90.0));
+
+        TrajectorySequence start_to_score_trajectory = drive.trajectorySequenceBuilder(startPose).
+                setTangent(Math.toRadians(-60.0)).
+                splineToLinearHeading(start_to_score_tempPose_1, Math.toRadians(0.0)).
+                splineToLinearHeading(scorePose, Math.toRadians(0.0)).build();
+
+    */
     public static class auto{
-        public static final Thread autoCycle = new Thread(() -> {
+        // region INITIALIZATION
+        public static void initialize(){
+            // region INITIALIZE DRIVE
+            drive = new SampleMecanumDrive(hardwareMap);
+            drive.setPoseEstimate(positions.start);
+            // endregion
+
+            // region CREATE TRAJECTORIES
+            // region START TO SCORE
+            trajectories.startToScore = drive.trajectorySequenceBuilder(positions.start).build();
+            // endregion
+
+            // region SCORE TO COLLECT
+            trajectories.scoreToCollect = drive.trajectorySequenceBuilder(positions.score).build();
+            // endregion
+
+            // region COLLECT TO SCORE
+            trajectories.collectToScore = drive.trajectorySequenceBuilder(positions.collect).build();
+            // endregion
+
+            // region SCORE TO PARK1
+            trajectories.scoreToPark1 = drive.trajectorySequenceBuilder(positions.score).build();
+            // endregion
+
+            // region SCORE TO PARK2
+            trajectories.scoreToPark2 = drive.trajectorySequenceBuilder(positions.score).build();
+            // endregion
+
+            // region SCORE TO PARK3
+            trajectories.scoreToPark3 = drive.trajectorySequenceBuilder(positions.score).build();
+            // endregion
+            // endregion
+        }
+
+        public static void terminate(){
+
+        }
+        // endregion
+
+        // region MOVEMENT
+        private static SampleMecanumDrive drive;
+        public static class trajectories{
+            public static TrajectorySequence startToScore;
+            public static TrajectorySequence scoreToCollect;
+            public static TrajectorySequence collectToScore;
+            public static TrajectorySequence scoreToPark1;
+            public static TrajectorySequence scoreToPark2;
+            public static TrajectorySequence scoreToPark3;
+        }
+        private static class positions{
+            public static final Pose2d start   = new Pose2d();
+            public static final Pose2d score   = new Pose2d();
+            public static final Pose2d collect = new Pose2d();
+            public static final Pose2d park1   = new Pose2d();
+            public static final Pose2d park2   = new Pose2d();
+            public static final Pose2d park3   = new Pose2d();
+        }
+
+        public static void follow(TrajectorySequence sequence) throws InterruptedException{
+            drive.followTrajectorySequenceAsync(sequence);
+            while (drive.isBusy()){
+                drive.update();
+                if (isStopRequested) {
+                    throw hardStopRequest;
+                }
+            }
+        }
+        // endregion
+
+        // region CYCLE
+        private static final Thread cycle = new Thread(() -> {
 
         });
 
-        private void score(boolean prepareForNext, int nextConeNum){}
-        private void collect(int coneNum){}
+        public static void score(boolean prepareForNext, int nextConeNum){}
+        public static void collect(int coneNum){}
+        // endregion
     }
     // endregion
 }
