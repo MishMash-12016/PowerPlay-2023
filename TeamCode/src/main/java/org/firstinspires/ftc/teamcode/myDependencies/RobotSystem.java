@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.myDependencies;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -275,40 +276,6 @@ public class RobotSystem {
     // endregion
 
     // region AUTONOMOUS FUNCTIONS
-    /*
-        Pose2d scorePose = new Pose2d(36.0, 12.0, Math.toRadians(Math.toRadians(-140.0)));
-        Pose2d startPose  = new Pose2d(30.7, 61.4, Math.toRadians(Math.toRadians(-90.0)));
-
-        Pose2d score_to_parking1_tempPose_1 = new Pose2d(36.0, 24.0, Math.toRadians(90.0));
-        Pose2d parking1Pose = new Pose2d(48.0, 36.0, Math.toRadians(0.0));
-
-        TrajectorySequence score_to_parking1_trajectory = drive.trajectorySequenceBuilder(scorePose).
-                setTangent(Math.toRadians(90.0)).
-                splineToLinearHeading(score_to_parking1_tempPose_1, Math.toRadians(-90.0)).
-                splineToLinearHeading(parking1Pose, Math.toRadians(0.0)).build();
-
-        Pose2d parking2Pose = new Pose2d(36.0, 24.0, Math.toRadians(90.0));
-
-        TrajectorySequence score_to_parking2_trajectory = drive.trajectorySequenceBuilder(scorePose).
-                setTangent(Math.toRadians(90.0)).
-                splineToLinearHeading(parking2Pose, Math.toRadians(-90.0)).build();
-
-        Pose2d score_to_parking3_tempPose_1 = new Pose2d(36.0, 24.0, Math.toRadians(90.0));
-        Pose2d parking3Pose = new Pose2d(24.0, 36.0, Math.toRadians(180.0));
-
-        TrajectorySequence score_to_parking3_trajectory = drive.trajectorySequenceBuilder(scorePose).
-                setTangent(Math.toRadians(90.0)).
-                splineToLinearHeading(score_to_parking3_tempPose_1, Math.toRadians(-90.0)).
-                splineToLinearHeading(parking3Pose, Math.toRadians(0.0)).build();
-
-        Pose2d start_to_score_tempPose_1 = new Pose2d(36.0, 46.0, Math.toRadians(-90.0));
-
-        TrajectorySequence start_to_score_trajectory = drive.trajectorySequenceBuilder(startPose).
-                setTangent(Math.toRadians(-60.0)).
-                splineToLinearHeading(start_to_score_tempPose_1, Math.toRadians(0.0)).
-                splineToLinearHeading(scorePose, Math.toRadians(0.0)).build();
-
-    */
     public static class auto{
         // region INITIALIZATION
         public static void initialize(){
@@ -319,27 +286,43 @@ public class RobotSystem {
 
             // region CREATE TRAJECTORIES
             // region START TO SCORE
-            trajectories.startToScore = drive.trajectorySequenceBuilder(positions.start).build();
+            trajectories.startToScore = drive.trajectorySequenceBuilder(positions.start)
+                    .setTangent(positions.startToScoreStartingTangent)
+                    .splineToConstantHeading(positions.startToScoreTemp1, Math.abs(-90))
+                    .splineToConstantHeading(positions.startToScoreTemp2, Math.abs(-90))
+                    .setTangent(Math.toRadians(90))
+                    .splineToConstantHeading(positions.startToScoreTemp3, Math.toRadians(180))
+                    .build();
             // endregion
 
             // region SCORE TO COLLECT
-            trajectories.scoreToCollect = drive.trajectorySequenceBuilder(positions.score).build();
+            trajectories.scoreToCollect = drive.trajectorySequenceBuilder(positions.score)
+                    .splineToSplineHeading(positions.collect, Math.toRadians(0))
+                    .build();
             // endregion
 
             // region COLLECT TO SCORE
-            trajectories.collectToScore = drive.trajectorySequenceBuilder(positions.collect).build();
+            trajectories.collectToScore = drive.trajectorySequenceBuilder(positions.collect)
+                    .splineToSplineHeading(positions.score, Math.toRadians(180))
+                    .build();
             // endregion
 
             // region SCORE TO PARK1
-            trajectories.scoreToPark1 = drive.trajectorySequenceBuilder(positions.score).build();
+            trajectories.scoreToPark1 = drive.trajectorySequenceBuilder(positions.score)
+                    .splineToConstantHeading(positions.park1, Math.toRadians(0))
+                    .build();
             // endregion
 
             // region SCORE TO PARK2
-            trajectories.scoreToPark2 = drive.trajectorySequenceBuilder(positions.score).build();
+            trajectories.scoreToPark2 = drive.trajectorySequenceBuilder(positions.score)
+                    .splineToConstantHeading(positions.park2, Math.toRadians(0))
+                    .build();
             // endregion
 
             // region SCORE TO PARK3
-            trajectories.scoreToPark3 = drive.trajectorySequenceBuilder(positions.score).build();
+            trajectories.scoreToPark3 = drive.trajectorySequenceBuilder(positions.score)
+                    .splineToConstantHeading(positions.park3, Math.toRadians(180))
+                    .build();
             // endregion
             // endregion
         }
@@ -360,12 +343,19 @@ public class RobotSystem {
             public static TrajectorySequence scoreToPark3;
         }
         private static class positions{
-            public static final Pose2d start   = new Pose2d();
-            public static final Pose2d score   = new Pose2d();
-            public static final Pose2d collect = new Pose2d();
-            public static final Pose2d park1   = new Pose2d();
-            public static final Pose2d park2   = new Pose2d();
-            public static final Pose2d park3   = new Pose2d();
+            public static final double startToScoreStartingTangent = Math.toRadians(-60);
+
+            public static final Pose2d start   = new Pose2d(30.7, 63, Math.toRadians(-90));
+            public static final Pose2d score   = new Pose2d(24, 12, Math.toRadians(-90));
+            public static final Pose2d collect = new Pose2d(36, 12, Math.toRadians(180));
+            public static final Vector2d park1 = new Vector2d(65, 12);
+            public static final Vector2d park2 = new Vector2d(36, 12);
+            public static final Vector2d park3 = new Vector2d(12, 12);
+
+            public static final Vector2d startToScoreTemp1 = new Vector2d(36, 48);
+            public static final Vector2d startToScoreTemp2 = new Vector2d(36, 7 );
+            public static final Vector2d startToScoreTemp3 = new Vector2d(score.getX(), score.getY());
+
         }
 
         public static void follow(TrajectorySequence sequence) throws InterruptedException{
