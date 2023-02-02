@@ -6,8 +6,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.*;
+import org.firstinspires.ftc.teamcode.roadRunnerDependencies.trajectorysequence.TrajectorySequence;
 
-import java.security.spec.ECField;
 import java.util.concurrent.Callable;
 
 public class RobotSystem {
@@ -59,10 +59,14 @@ public class RobotSystem {
     // endregion
 
     // region SYSTEM FUNCTIONALITY
-    public static void startAllControllers(){
+    public static void startAllTeleOpControllers(){
         RobotSystem.cycleController.start();
         driveTrain.controller.start();
         elevator.controller.start();
+    }
+    public static void startAllAutonomousControllers(){
+        elevator.controller.start();
+
     }
 
     public static void terminate(){
@@ -84,7 +88,7 @@ public class RobotSystem {
             Thread.sleep(20);
         }
     }
-    public static void await(Callable<Boolean> requirement) throws Exception{
+    public static void await(Callable<Boolean> requirement) throws InterruptedException{
         try{
             while (!requirement.call() && !isStopRequested) {
                 Thread.sleep(20);

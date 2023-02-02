@@ -13,7 +13,7 @@ public class elevator {
     private static DcMotorEx motorLeft ;
     // endregion
 
-// region CONSTANTS
+    // region CONSTANTS
     public static final int highPosition   = 17500;
     public static final int middlePosition = 11000;
     public static final int lowPosition    = 4000 ;
@@ -25,13 +25,11 @@ public class elevator {
     // endregion
 
     // region SENSOR
-    public static DigitalChannel isUpSensor;
+    private static DigitalChannel isUpSensor;
     // endregion
 
     // region VARIABLES
-    public static double wantedPosition;
-
-    private static double motorPower;
+    private static double wantedPosition;
     // endregion
 
     // region INITIALIZATION
@@ -52,13 +50,11 @@ public class elevator {
         // endregion
 
         // region VARIABLES
-        motorPower = 0;
         wantedPosition = 0;
         // endregion
     }
 
     public static void reset(){
-        motorPower = 0;
         wantedPosition = 0;
 
         if (motorLeft != null){
@@ -89,13 +85,13 @@ public class elevator {
         return isUpSensor.getState();
     }
     public static boolean almostReachedWantedPosition(){
-        return 1000 > Math.abs(wantedPosition - getCurrentPosition());
+        return 2000 > Math.abs(wantedPosition - getCurrentPosition());
     }
 
     public static String deBug(){
-        return "left motor power : " + motorLeft.getPower()
-                + "\nright motor power : " + motorRight.getPower()
-                + "\nheight : " + motorLeft.getCurrentPosition();
+        return  "left motor power : "    + motorLeft.getPower() +
+                "\nright motor power : " + motorRight.getPower() +
+                "\nheight : "            + motorLeft.getCurrentPosition();
     }
     // endregion
 
@@ -105,30 +101,30 @@ public class elevator {
         motorRight.setPower(motorPower);
     }
 
-    private static double calculatePower(double x){
+    private static double calculatePower(double distanceToWantedPosition){
         if (!isUp() && wantedPosition == 0){
             return 0;
         }
 
-        if (Math.abs(x) < marginOfError){
+        if (Math.abs(distanceToWantedPosition) < marginOfError){
             return holdingPower;
-        } else if (x > smoothness * 4 + marginOfError){
+        } else if (distanceToWantedPosition > smoothness * 4 + marginOfError){
             return 0;
-        } else if (-x > smoothness + marginOfError){
+        } else if (-distanceToWantedPosition > smoothness + marginOfError){
             return 1;
         }
 
-        if (x > 0){
-            x -= marginOfError;
+        if (distanceToWantedPosition > 0){
+            distanceToWantedPosition -= marginOfError;
         } else {
-            x += marginOfError;
+            distanceToWantedPosition += marginOfError;
         }
 
 
-        if (x > 0){
-            return ((Math.cos((x) * Math.PI / smoothness / 4) - 1) / 2) * holdingPower + holdingPower;
+        if (distanceToWantedPosition > 0){
+            return ((Math.cos((distanceToWantedPosition) * Math.PI / smoothness / 4) - 1) / 2) * holdingPower + holdingPower;
         } else {
-            return ((1 - Math.cos(x * Math.PI / smoothness)) / 2) * (1 - holdingPower) + holdingPower;
+            return ((1 - Math.cos(distanceToWantedPosition * Math.PI / smoothness)) / 2) * (1 - holdingPower) + holdingPower;
         }
     }
 
