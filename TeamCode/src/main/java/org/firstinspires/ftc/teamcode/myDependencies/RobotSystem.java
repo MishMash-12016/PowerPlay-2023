@@ -7,9 +7,15 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.*;
+import org.firstinspires.ftc.teamcode.myDependencies.oldFiles.PipeLine;
 import org.firstinspires.ftc.teamcode.roadRunnerDependencies.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.roadRunnerDependencies.trajectorysequence.TrajectorySequence;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
+import org.openftc.easyopencv.OpenCvWebcam;
 
 import java.util.concurrent.Callable;
 
@@ -279,6 +285,24 @@ public class RobotSystem {
     public static class auto{
         // region INITIALIZATION
         public static void initialize(){
+            // region INITIALIZE CAMERA
+            webcam = OpenCvCameraFactory.getInstance().createWebcam(
+                    hardwareMap.get(WebcamName.class, "cam"),
+                    hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()));
+            webcam.setPipeline(new PipeLine(false));
+
+            webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+                @Override
+                public void onOpened() {
+                    webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
+                }
+
+                @Override
+                public void onError(int errorCode) {}
+            });
+
+            // endregion
+
             // region INITIALIZE DRIVE
             drive = new SampleMecanumDrive(hardwareMap);
             drive.setPoseEstimate(positions.start);
@@ -309,6 +333,7 @@ public class RobotSystem {
 
             // region SCORE TO PARK1
             trajectories.scoreToPark1 = drive.trajectorySequenceBuilder(positions.score)
+                    .setTangent(Math.toRadians(0))
                     .splineToConstantHeading(positions.park1, Math.toRadians(0))
                     .build();
             // endregion
@@ -328,7 +353,7 @@ public class RobotSystem {
         }
 
         public static void terminate(){
-
+            RobotSystem.terminate();
         }
         // endregion
 
@@ -343,9 +368,9 @@ public class RobotSystem {
             public static TrajectorySequence scoreToPark3;
         }
         private static class positions{
-            public static final double startToScoreStartingTangent = Math.toRadians(-60);
+            public static final double startToScoreStartingTangent = Math.toRadians(-30);
 
-            public static final Pose2d start   = new Pose2d(30.7, 63, Math.toRadians(-90));
+            public static final Pose2d start   = new Pose2d(32.8, 58, Math.toRadians(-90));
             public static final Pose2d score   = new Pose2d(24, 12, Math.toRadians(-90));
             public static final Pose2d collect = new Pose2d(36, 12, Math.toRadians(180));
             public static final Vector2d park1 = new Vector2d(65, 12);
@@ -353,29 +378,65 @@ public class RobotSystem {
             public static final Vector2d park3 = new Vector2d(12, 12);
 
             public static final Vector2d startToScoreTemp1 = new Vector2d(36, 48);
-            public static final Vector2d startToScoreTemp2 = new Vector2d(36, 7 );
+            public static final Vector2d startToScoreTemp2 = new Vector2d(36, 12 );
             public static final Vector2d startToScoreTemp3 = new Vector2d(score.getX(), score.getY());
 
         }
 
         public static void follow(TrajectorySequence sequence) throws InterruptedException{
             drive.followTrajectorySequenceAsync(sequence);
-            while (drive.isBusy()){
-                drive.update();
-                if (isStopRequested) {
-                    throw hardStopRequest;
-                }
-            }
+            followThread.start();
         }
+        private static final Thread followThread = new Thread(() -> {
+            while (drive.isBusy() && !isStopRequested){
+                drive.update();
+            }
+        });
         // endregion
 
         // region CYCLE
-        private static final Thread cycle = new Thread(() -> {
+        public static void cycle(int cycleAmount) throws InterruptedException{
+            for (int coneHeight = 4; coneHeight > 4 - cycleAmount; coneHeight--) {
+                collect(coneHeight);
+                sleep(500);
+                score();
+            }
+        }
 
-        });
+        public static void score() throws InterruptedException{
+            follow(trajectories.collectToScore);
+            grabber.goToIn();
+            await(() -> !grabber.isOut());
+            grabber.midRelease();
+            puffer.grab();
+            puffer.goToMid();
+            elevator.wantedPosition = elevator.highPosition;
+            await(elevator::almostReachedWantedPosition);
+            puffer.goToOut();
+            sleep(500);
+            puffer.release();
+            sleep(500);
+            puffer.goToIn();
+            sleep(500);
+            elevator.wantedPosition = elevator.bottomPosition;
+        }
+        public static void collect(int coneNum) throws InterruptedException{
+            follow(trajectories.scoreToCollect);
+            grabber.goToCone(coneNum);
+            grabber.fullRelease();
+            arm.goToRelativePosition(1);
+            await(grabber::coneIsInRange);
+            grabber.grab();
+            await(grabber::hasCone);
+            grabber.goToMid();
+            sleep(500);
+            arm.goToRelativePosition(0);
+            sleep(500);
+        }
+        // endregion
 
-        public static void score(boolean prepareForNext, int nextConeNum){}
-        public static void collect(int coneNum){}
+        // region CAMERA
+        private static OpenCvWebcam webcam;
         // endregion
     }
     // endregion

@@ -29,7 +29,7 @@ public class elevator {
     // endregion
 
     // region VARIABLES
-    private static double wantedPosition;
+    public static double wantedPosition;
     // endregion
 
     // region INITIALIZATION
