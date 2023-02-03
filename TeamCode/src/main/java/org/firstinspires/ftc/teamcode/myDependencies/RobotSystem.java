@@ -186,7 +186,8 @@ public class RobotSystem {
             try {
                 driveTrain.slowMode();
                 grabber.goToCone(currentConeHeight);
-                grabber.fullRelease();
+                grabber.release();
+                sleep(200);
                 while (!RobotSystem.manual.asyncCollect.isInterrupted() && !isStopRequested && (gamepad1.left_trigger > 0 || gamepad1.left_bumper)) {
                     arm.goToRelativePosition(gamepad1.left_trigger);
 
@@ -196,7 +197,7 @@ public class RobotSystem {
                         }
                     } else {
                         if (grabber.isGrabbing()) {
-                            grabber.fullRelease();
+                            grabber.release();
                         }
                     }
                 }
@@ -221,7 +222,7 @@ public class RobotSystem {
 
                 await(() -> !grabber.isOut());
 
-                grabber.midRelease();
+                grabber.release();
 
                 if (grabber.hasCone()) {
                     puffer.grab();
@@ -231,7 +232,7 @@ public class RobotSystem {
             }catch (Exception e){
                 if (e == softStopRequest){
                     arm.goToRelativePosition(0);
-                    grabber.midRelease();
+                    grabber.release();
                     grabber.goToIn();
                 } else if (e != hardStopRequest){
                     telemetry.addData("stopped manual collect completely", e);
@@ -407,7 +408,7 @@ public class RobotSystem {
             follow(trajectories.collectToScore);
             grabber.goToIn();
             await(() -> !grabber.isOut());
-            grabber.midRelease();
+            grabber.release();
             puffer.grab();
             puffer.goToMid();
             elevator.wantedPosition = elevator.highPosition;
@@ -423,7 +424,7 @@ public class RobotSystem {
         public static void collect(int coneNum) throws InterruptedException{
             follow(trajectories.scoreToCollect);
             grabber.goToCone(coneNum);
-            grabber.fullRelease();
+            grabber.release();
             arm.goToRelativePosition(1);
             await(grabber::coneIsInRange);
             grabber.grab();

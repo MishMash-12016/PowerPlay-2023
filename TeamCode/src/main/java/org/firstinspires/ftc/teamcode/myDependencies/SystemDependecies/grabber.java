@@ -20,18 +20,17 @@ public class grabber {
     // endregion
 
     // region CONSTANTS
-    private static final double middlePosition = 0.6;
-    private static final double inPosition     = 0.8;
+    private static final double middlePosition = 0.7;
+    private static final double inPosition     = 0.86;
     //                                             low -  -  -  -  -  -  - high
-    private static final double[] pilePositions = {0.1, 0.72, 0.69, 0.65, 0.61};
+    private static final double[] pilePositions = {0.178, 0.72, 0.69, 0.65, 0.61};
 
 
-    private static final double grabPosition = 0.45;
-    private static final double midReleasePosition = 0.19;
-    private static final double releasePosition = 0.16;
+    private static final double grabPosition = 0.42;
+    private static final double releasePosition = 0.18;
 
-    private static final double coneDistanceCatchTrigger = 8.5;
-    private static final double coneInDistance = 3.5;
+    private static final double coneDistanceCatchTrigger = 12;
+    private static final double coneInDistance = 5;
     // endregion
 
     // region INITIALIZATION
@@ -39,7 +38,7 @@ public class grabber {
         // region SERVOS
         grabberServo = RobotSystem.hardwareMap.servo.get("grabber");
 
-        midRelease();
+        release();
 
         rightServo = RobotSystem.hardwareMap.servo.get("grabberRight");
         leftServo  = RobotSystem.hardwareMap.servo.get("grabberLeft" );
@@ -59,8 +58,7 @@ public class grabber {
     // endregion
 
     // region FUNCTIONALITY
-    public static void fullRelease() { grabberServo.setPosition(releasePosition   ); }
-    public static void midRelease()  { grabberServo.setPosition(midReleasePosition); }
+    public static void release() { grabberServo.setPosition(releasePosition   ); }
     public static void grab()        { grabberServo.setPosition(grabPosition      ); }
 
     public static void goToCone(int coneHeight){ setPosition(pilePositions[coneHeight]); }
