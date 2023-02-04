@@ -166,7 +166,7 @@ public class RobotSystem {
             if      (FirstPress.A()) { manual.score(elevator.highPosition); }
             else if (FirstPress.X()) { manual.score(elevator.middlePosition); }
             else if (FirstPress.Y()) { manual.score(elevator.lowPosition); }
-            else if (FirstPress.B()) { elevator.setWantedPosition(elevator.bottomPosition); }
+            else if (FirstPress.B()) { manual.asyncScore.interrupt(); }
         }
     });
 
@@ -245,6 +245,7 @@ public class RobotSystem {
 
                 puffer.goToOut();
 
+                sleep(275);
                 await(() -> (gamepad1.right_trigger > 0 || RobotSystem.manual.asyncScore.isInterrupted()));
 
                 if (manual.asyncScore.isInterrupted()){
@@ -267,7 +268,14 @@ public class RobotSystem {
 
                         await(() -> !elevator.isUp());
 
-                        puffer.release();
+                        sleep(300);
+                        if (!grabber.isOut() && grabber.hasCone()){
+                            puffer.goToMid();
+                        }
+                        else {
+                            puffer.release();
+                        }
+
                     } catch (Exception e2){
                         telemetry.addData("stopped manual score from safely stopping", e2);
                         telemetry.update();
@@ -370,7 +378,7 @@ public class RobotSystem {
                 public static final Vector2d park3 = new Vector2d(12, 12);
 
                 public static final Vector2d startToScoreTemp1 = new Vector2d(36, 48);
-                public static final Vector2d startToScoreTemp2 = new Vector2d(36, 12 );
+                public static final Vector2d startToScoreTemp2 = new Vector2d(36, 12);
                 public static final Vector2d startToScoreTemp3 = new Vector2d(score.getX(), score.getY());
 
             }
@@ -515,9 +523,11 @@ public class RobotSystem {
                 // region START TO SCORE
                 trajectories.startToScore = drive.trajectorySequenceBuilder(positions.start)
                         .setTangent(positions.startToScoreStartingTangent)
-                        .splineToLinearHeading(positions.startToScoreTemp1, Math.toRadians(0.0))
-                        .splineToLinearHeading(positions.score, Math.toRadians(-100.0)).build();
+                        .splineToSplineHeading(positions.startToScoreTemp1, Math.toRadians(-90.0))
+                        .splineToSplineHeading(positions.score, Math.toRadians(-100.0))
+                        .build();
                 // endregion
+
 
                 // region SCORE TO PARKING 1
                 trajectories.scoreToPark1 = drive.trajectorySequenceBuilder(positions.score)
@@ -556,15 +566,15 @@ public class RobotSystem {
             }
             private static class positions{
                 public static final double startToScoreStartingTangent = Math.toRadians(-40);
-                public static final Pose2d start = new Pose2d(30.7, 61.4, Math.toRadians(Math.toRadians(-90.0)));
-                public static final Pose2d score = new Pose2d(36.0, 12.0, Math.toRadians(Math.toRadians(-140.0)));
+                public static final Pose2d start = new Pose2d(30.7, 61.4, Math.toRadians(-90.0));
+                public static final Pose2d score = new Pose2d(30.0, 12.0, Math.toRadians(-140.0));
                 public static final Pose2d parking2 = new Pose2d(36.0, 24.0, Math.toRadians(90.0));
                 public static final Pose2d parking1 = new Pose2d(48.0, 36.0, Math.toRadians(0.0));
                 public static final Pose2d parking3 = new Pose2d(24.0, 36.0, Math.toRadians(180.0));
 
                 public static final Pose2d scoreToParking1Temp1 = new Pose2d(36.0, 24.0, Math.toRadians(90.0));
                 public static final Pose2d scoreToParking3Temp1 = new Pose2d(36.0, 24.0, Math.toRadians(90.0));
-                public static final Pose2d startToScoreTemp1    = new Pose2d(36.0, 48.0, Math.toRadians(-90.0));
+                public static final Pose2d startToScoreTemp1    = new Pose2d(30.0, 48.0, Math.toRadians(-90.0));
             }
 
             public static void follow(TrajectorySequence sequence){

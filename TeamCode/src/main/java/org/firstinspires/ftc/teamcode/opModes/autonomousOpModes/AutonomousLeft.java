@@ -22,8 +22,10 @@ public class AutonomousLeft extends LinearOpMode {
         RobotSystem.startAllAutonomousControllers();
         try {
             RobotSystem.auto.regularAuto.follow(RobotSystem.auto.regularAuto.trajectories.startToScore);
+            puffer.grab();
+            puffer.goToMid();
             RobotSystem.await(RobotSystem.auto.regularAuto::isStationary);
-            RobotSystem.auto.regularAuto.cycle(1);
+            RobotSystem.auto.regularAuto.cycle(2);
             RobotSystem.auto.regularAuto.follow(RobotSystem.auto.regularAuto.trajectories.scoreToPark1);
         } catch (InterruptedException e){
             RobotSystem.auto.regularAuto.terminate();

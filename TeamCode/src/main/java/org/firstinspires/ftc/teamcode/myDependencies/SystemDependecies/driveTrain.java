@@ -27,11 +27,11 @@ public class driveTrain {
     // region CONSTANTS
     private static final double sq2 = 1.414;
 
-    private static final double fastDrivingStrength = 1;
-    private static final double fastTurningStrength =0.8;
+    private static final double fastDrivingStrength = 1  ;
+    private static final double fastTurningStrength = 0.8;
 
     private static final double slowDrivingStrength = 0.4;
-    private static final double slowTurningStrength = 0.3;
+    private static final double slowTurningStrength = 0.2;
 
     // endregion
 
