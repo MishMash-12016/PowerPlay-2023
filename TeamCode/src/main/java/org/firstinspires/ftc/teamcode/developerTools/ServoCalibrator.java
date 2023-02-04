@@ -52,6 +52,7 @@ public class ServoCalibrator extends LinearOpMode {
                 if (A_Pressed()){
                     position -= gamepad1.left_stick_y * sensitivity;
                     sensitivity /= 2;
+                    sleep(500);
                 }
 
                 telemetry.addData("position", position - gamepad1.left_stick_y * sensitivity);
@@ -71,6 +72,7 @@ public class ServoCalibrator extends LinearOpMode {
                 if (A_Pressed()) {
                     position -= gamepad1.left_stick_y * sensitivity;
                     sensitivity /= 2;
+                    sleep(500);
                 }
 
                 telemetry.addData("position", position - gamepad1.left_stick_y * sensitivity);
