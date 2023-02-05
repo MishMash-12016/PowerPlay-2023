@@ -16,7 +16,6 @@ import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
-
 import java.util.concurrent.Callable;
 
 public class RobotSystem {
@@ -32,6 +31,7 @@ public class RobotSystem {
 
     // region SYSTEM VARIABLES
     public static boolean isStopRequested;
+    public static boolean allowScoring;
     public static int currentConeHeight;
     // endregion
 
@@ -64,6 +64,7 @@ public class RobotSystem {
     public static void reset(){
         isStopRequested = false;
         currentConeHeight = 0;
+        allowScoring = true;
     }
     // endregion
 
@@ -99,7 +100,27 @@ public class RobotSystem {
     }
     public static void await(Callable<Boolean> requirement) throws InterruptedException{
         try{
-            while (!requirement.call() && !isStopRequested) {
+            while (!requirement.call()) {
+                if (isStopRequested){
+                    throw hardStopRequest;
+                }
+                Thread.sleep(20);
+            }
+        }catch (Exception e){
+            throw softStopRequest;
+        }
+        if (isStopRequested) {
+            throw hardStopRequest;
+        }
+    }
+    public static void await(Callable<Boolean> requirement, int maxWaitingTime) throws InterruptedException{
+        timePassed.reset();
+        try{
+            while (!requirement.call() && maxWaitingTime > timePassed.milliseconds()) {
+                if (isStopRequested){
+                    throw hardStopRequest;
+                }
+                Thread.sleep(20);
             }
         }catch (Exception e){
             throw softStopRequest;
@@ -109,9 +130,9 @@ public class RobotSystem {
         }
     }
 
-    public static class FirstPress{
+    public static class buttonController {
         public static boolean a = true;
-        public static boolean A(){
+        public static boolean firstAPress(){
             if (gamepad1.a){
                 if(a){
                     a = false;
@@ -122,7 +143,7 @@ public class RobotSystem {
         }
 
         public static boolean x = true;
-        public static boolean X(){
+        public static boolean firstXPress(){
             if (gamepad1.x){
                 if(x){
                     x = false;
@@ -133,7 +154,7 @@ public class RobotSystem {
         }
 
         public static boolean y = true;
-        public static boolean Y(){
+        public static boolean firstYPress(){
             if (gamepad1.y){
                 if(y){
                     y = false;
@@ -144,13 +165,79 @@ public class RobotSystem {
         }
 
         public static boolean b = true;
-        public static boolean B(){
+        public static boolean firstBPress(){
             if (gamepad1.b){
                 if(b){
                     b = false;
                     return true;
                 }
             } else b = true;
+            return false;
+        }
+
+        public static boolean right_bumperPress = true;
+        public static boolean firstRight_bumperPress(){
+            if (gamepad1.right_bumper){
+                if(right_bumperPress){
+                    right_bumperPress = false;
+                    return true;
+                }
+            } else right_bumperPress = true;
+            return false;
+        }
+
+        public static boolean right_bumperRelease = true;
+        public static boolean firstRight_bumperRelease(){
+            if (!gamepad1.right_bumper){
+                if(right_bumperRelease){
+                    right_bumperRelease = false;
+                    return true;
+                }
+            } else right_bumperRelease = true;
+            return false;
+        }
+
+        public static boolean dpad_up = true;
+        public static boolean firstDpad_up(){
+            if (gamepad1.dpad_up){
+                if(dpad_up){
+                    dpad_up = false;
+                    return true;
+                }
+            } else dpad_up = true;
+            return false;
+        }
+
+        public static boolean dpad_right = true;
+        public static boolean firstDpad_right(){
+            if (gamepad1.dpad_right){
+                if(dpad_right){
+                    dpad_right = false;
+                    return true;
+                }
+            } else dpad_right = true;
+            return false;
+        }
+
+        public static boolean dpad_left = true;
+        public static boolean firstDpad_left(){
+            if (gamepad1.dpad_left){
+                if(dpad_left){
+                    dpad_left = false;
+                    return true;
+                }
+            } else dpad_left = true;
+            return false;
+        }
+
+        public static boolean dpad_down = true;
+        public static boolean firstDpad_down(){
+            if (gamepad1.dpad_down){
+                if(dpad_down){
+                    dpad_down = false;
+                    return true;
+                }
+            } else dpad_down = true;
             return false;
         }
     }
@@ -162,17 +249,44 @@ public class RobotSystem {
             if (!manual.asyncCollect.isAlive() && (gamepad1.left_trigger > 0 || gamepad1.left_bumper)) {
                 manual.collect();
             }
+            if (!manual.asyncHighCollect.isAlive()) {
+                if (buttonController.firstDpad_up()) {
+                    manual.highCollect(4);
+                }
+                if (buttonController.firstDpad_right()) {
+                    manual.highCollect(3);
+                }
+                if (buttonController.firstDpad_down()) {
+                    manual.highCollect(2);
+                }
+                if (buttonController.firstDpad_left()) {
+                    manual.highCollect(1);
+                }
+            }
+            if (allowScoring) {
+                if      (buttonController.firstAPress()) { manual.score(elevator.highPosition  ); }
+                else if (buttonController.firstXPress()) { manual.score(elevator.middlePosition); }
+                else if (buttonController.firstYPress()) { manual.score(elevator.lowPosition   ); }
+            }
+            else if (buttonController.firstBPress()) { manual.asyncScore.interrupt(); }
 
-            if      (FirstPress.A()) { manual.score(elevator.highPosition); }
-            else if (FirstPress.X()) { manual.score(elevator.middlePosition); }
-            else if (FirstPress.Y()) { manual.score(elevator.lowPosition); }
-            else if (FirstPress.B()) { manual.asyncScore.interrupt(); }
+            if (buttonController.firstRight_bumperPress()){
+                driveTrain.slowMode();
+            }
+            if (buttonController.firstRight_bumperRelease() && !manual.asyncCollect.isAlive() && !manual.asyncScore.isAlive()) {
+                driveTrain.fastMode();
+            }
         }
     });
 
     public static class manual{
         public static void collect() {
             asyncCollect.start();
+        }
+
+        public static void highCollect(int coneNumber) {
+            currentConeHeight = coneNumber;
+            asyncHighCollect.start();
         }
         public static void score(int height) {
             elevator.setWantedPosition(height);
@@ -181,13 +295,74 @@ public class RobotSystem {
             }
         }
 
-        public static final Thread asyncCollect = new Thread(() -> {
+        public static final Thread asyncHighCollect = new Thread(() -> {
             try {
                 driveTrain.slowMode();
                 grabber.goToCone(currentConeHeight);
                 grabber.release();
                 sleep(200);
-                while (!RobotSystem.manual.asyncCollect.isInterrupted() && !isStopRequested && (gamepad1.left_trigger > 0 || gamepad1.left_bumper)) {
+
+                await(grabber::coneIsInRange);
+                grabber.grab();
+                if(manual.asyncCollect.isInterrupted()){
+                    throw softStopRequest;
+                }
+
+                await(grabber::hasCone);
+                grabber.goToMid();
+                if(manual.asyncCollect.isInterrupted()){
+                    throw softStopRequest;
+                }
+
+                if (!manual.asyncScore.isAlive()) {
+                    driveTrain.fastMode();
+                }
+
+                arm.goToRelativePosition(0);
+
+                await(() -> !arm.isOut() && !elevator.isUp() && elevator.wantedPosition == elevator.bottomPosition);
+                if(manual.asyncCollect.isInterrupted()){
+                    throw softStopRequest;
+                }
+
+                if (grabber.hasCone()) {
+                    allowScoring = false;
+                    manual.asyncScore.interrupt();
+
+                    grabber.goToIn();
+
+                    await(() -> !grabber.isOut(), 900);
+
+                    grabber.release();
+                    puffer.grab();
+                    puffer.goToMid();
+
+                } else {
+                    grabber.goToIn();
+                    grabber.release();
+                }
+
+            }catch (Exception e){
+                if (e == softStopRequest){
+                    arm.goToRelativePosition(0);
+                    grabber.release();
+                    grabber.goToIn();
+                }
+            }
+            if (!manual.asyncScore.isAlive()) {
+                driveTrain.fastMode();
+            }
+            allowScoring = true;
+        });
+
+        public static final Thread asyncCollect = new Thread(() -> {
+            try {
+                driveTrain.slowMode();
+                grabber.goToCone(0);
+                grabber.release();
+                sleep(200);
+                while (!RobotSystem.manual.asyncCollect.isInterrupted() && !isStopRequested &&
+                        (gamepad1.left_trigger > 0 || gamepad1.left_bumper)) {
                     arm.goToRelativePosition(gamepad1.left_trigger);
 
                     if (grabber.coneIsInRange()) {
@@ -201,7 +376,9 @@ public class RobotSystem {
                     }
                 }
 
-                driveTrain.fastMode();
+                if (!manual.asyncScore.isAlive()) {
+                    driveTrain.fastMode();
+                }
 
                 if (isStopRequested){
                     throw hardStopRequest;
@@ -215,17 +392,23 @@ public class RobotSystem {
 
                 arm.goToRelativePosition(0);
 
-                await(() -> !arm.isOut() && !elevator.isUp());
-
-                grabber.goToIn();
-
-                await(() -> !grabber.isOut());
-
-                grabber.release();
+                await(() -> !arm.isOut() && !elevator.isUp() && elevator.wantedPosition == elevator.bottomPosition);
 
                 if (grabber.hasCone()) {
+                    allowScoring = false;
+                    manual.asyncScore.interrupt();
+
+                    grabber.goToIn();
+
+                    await(() -> !grabber.isOut(), 900);
+
+                    grabber.release();
                     puffer.grab();
                     puffer.goToMid();
+
+                } else {
+                    grabber.goToIn();
+                    grabber.release();
                 }
 
             }catch (Exception e){
@@ -238,6 +421,10 @@ public class RobotSystem {
                     telemetry.update();
                 }
             }
+            if (!manual.asyncScore.isAlive()) {
+                driveTrain.fastMode();
+            }
+            allowScoring = true;
         });
         public static final Thread asyncScore = new Thread(()-> {
             try {
@@ -497,21 +684,24 @@ public class RobotSystem {
 
             public static void initialize(){
                 // region INITIALIZE CAMERA
-                webcam = OpenCvCameraFactory.getInstance().createWebcam(
-                        hardwareMap.get(WebcamName.class, "cam"),
-                        hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()));
-                webcam.setPipeline(new PipeLine(false));
+                int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+                camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "cam"), cameraMonitorViewId);
 
-                webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+                camera.setPipeline(new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy));
+                camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+                {
                     @Override
-                    public void onOpened() {
-                        webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
+                    public void onOpened()
+                    {
+                        camera.startStreaming(800,448, OpenCvCameraRotation.UPRIGHT);
                     }
 
                     @Override
-                    public void onError(int errorCode) {}
-                });
+                    public void onError(int errorCode)
+                    {
 
+                    }
+                });
                 // endregion
 
                 // region INITIALIZE DRIVE
@@ -524,29 +714,33 @@ public class RobotSystem {
                 trajectories.startToScore = drive.trajectorySequenceBuilder(positions.start)
                         .setTangent(positions.startToScoreStartingTangent)
                         .splineToSplineHeading(positions.startToScoreTemp1, Math.toRadians(-90.0))
-                        .splineToSplineHeading(positions.score, Math.toRadians(-100.0))
+                        .splineToSplineHeading(positions.startToScoreTemp2, Math.toRadians(-90.0))
+                        .splineToSplineHeading(positions.score, Math.toRadians(-90.0))
                         .build();
                 // endregion
-
 
                 // region SCORE TO PARKING 1
                 trajectories.scoreToPark1 = drive.trajectorySequenceBuilder(positions.score)
                         .setTangent(Math.toRadians(90.0))
-                        .splineToLinearHeading(positions.scoreToParking1Temp1, Math.toRadians(-90.0))
-                        .splineToLinearHeading(positions.parking1, Math.toRadians(0.0)).build();
+                        .splineToSplineHeading(positions.scoreToPark1Temp1, Math.toRadians(90.0))
+                        .splineTo(positions.scoreToPark1Temp2, Math.toRadians(0.0))
+                        .splineToSplineHeading(positions.park1, Math.toRadians(0.0))
+                        .build();
                 // endregion
 
                 // region SCORE TO PARKING 2
                 trajectories.scoreToPark2 = drive.trajectorySequenceBuilder(positions.score)
                         .setTangent(Math.toRadians(90.0))
-                        .splineToLinearHeading(positions.parking2, Math.toRadians(-90.0)).build();
+                        .splineToSplineHeading(positions.park2, Math.toRadians(90.0)).build();
                 // endregion
 
                 // region SCORE TO PARKING 3
                 trajectories.scoreToPark3 = drive.trajectorySequenceBuilder(positions.score)
                         .setTangent(Math.toRadians(90.0))
-                        .splineToLinearHeading(positions.scoreToParking3Temp1, Math.toRadians(-90.0))
-                        .splineToLinearHeading(positions.parking3, Math.toRadians(0.0)).build();
+                        .splineToSplineHeading(positions.scoreToPark3Temp1, Math.toRadians(90.0))
+                        .splineTo(positions.scoreToPark3Temp2, Math.toRadians(180.0))
+                        .splineToSplineHeading(positions.park3, Math.toRadians(180.0))
+                        .build();
                 // endregion
                 // endregion
             }
@@ -563,18 +757,25 @@ public class RobotSystem {
                 public static TrajectorySequence scoreToPark3;
                 public static TrajectorySequence scoreToPark2;
                 public static TrajectorySequence scoreToPark1;
+
+                public static TrajectorySequence tempForTest;
             }
             private static class positions{
                 public static final double startToScoreStartingTangent = Math.toRadians(-40);
                 public static final Pose2d start = new Pose2d(30.7, 61.4, Math.toRadians(-90.0));
-                public static final Pose2d score = new Pose2d(30.0, 12.0, Math.toRadians(-140.0));
-                public static final Pose2d parking2 = new Pose2d(36.0, 24.0, Math.toRadians(90.0));
-                public static final Pose2d parking1 = new Pose2d(48.0, 36.0, Math.toRadians(0.0));
-                public static final Pose2d parking3 = new Pose2d(24.0, 36.0, Math.toRadians(180.0));
+                public static final Pose2d score = new Pose2d(38.0, 5.5, Math.toRadians(-164.0));
+                public static final Pose2d park2 = new Pose2d(36.0, 24.0, Math.toRadians(-90.0));
+                public static final Pose2d park1 = new Pose2d(62, 36.0, Math.toRadians(-90));
+                public static final Pose2d park3 = new Pose2d(12.0, 36.0, Math.toRadians(-90));
 
-                public static final Pose2d scoreToParking1Temp1 = new Pose2d(36.0, 24.0, Math.toRadians(90.0));
-                public static final Pose2d scoreToParking3Temp1 = new Pose2d(36.0, 24.0, Math.toRadians(90.0));
-                public static final Pose2d startToScoreTemp1    = new Pose2d(30.0, 48.0, Math.toRadians(-90.0));
+                public static final Pose2d scoreToPark1Temp1 = new Pose2d(36.0, 24.0, Math.toRadians(-90.0));
+                public static final Vector2d scoreToPark1Temp2 = new Vector2d(48.0, 36.0);
+
+                public static final Pose2d scoreToPark3Temp1 = new Pose2d(36.0, 24.0, Math.toRadians(-90.0));
+                public static final Vector2d scoreToPark3Temp2 = new Vector2d(24.0, 36.0);
+
+                public static final Pose2d startToScoreTemp1 = new Pose2d(36.0, 48.0, Math.toRadians(-90.0));
+                public static final Pose2d startToScoreTemp2 = new Pose2d(36.0, 24.0, Math.toRadians(-90.0));
             }
 
             public static void follow(TrajectorySequence sequence){
@@ -590,7 +791,7 @@ public class RobotSystem {
 
             // region CYCLE
             public static void cycle(int cycleAmount) throws InterruptedException{
-                for (int coneHeight = 4; coneHeight > 5 - cycleAmount; coneHeight--) {
+                for (int coneHeight = 4; coneHeight > 4 - cycleAmount; coneHeight--) {
                     scoreAndPrepare(coneHeight);
                     collect();
                 }
@@ -600,12 +801,12 @@ public class RobotSystem {
             public static void score() throws InterruptedException{
                 elevator.wantedPosition = elevator.highPosition;
                 await(elevator::almostReachedWantedPosition);
-                puffer.goToOut();
-                sleep(500);
+                puffer.autonomousGoToOut();
+                sleep(275);
                 puffer.release();
-                sleep(500);
-                puffer.goToIn();
-                sleep(500);
+                sleep(300);
+                puffer.autonomousGoToIn();
+                sleep(100);
                 elevator.wantedPosition = elevator.bottomPosition;
             }
             public static void scoreAndPrepare(int coneHeight) throws InterruptedException{
@@ -613,27 +814,27 @@ public class RobotSystem {
                 sleep(500);
                 prepareForCollect(coneHeight);
                 await(elevator::almostReachedWantedPosition);
-                puffer.goToOut();
-                sleep(500);
+                puffer.autonomousGoToOut();
+                sleep(275);
                 puffer.release();
-                sleep(500);
-                puffer.goToIn();
-                sleep(500);
+                sleep(300);
+                puffer.autonomousGoToIn();
+                sleep(100);
                 elevator.wantedPosition = elevator.bottomPosition;
             }
             public static void prepareForCollect(int cone){
                 grabber.goToCone(cone);
-                arm.goToRelativePosition(0.8);
+                arm.goToRelativePosition(0.65);
                 grabber.release();
             }
             public static void collect() throws InterruptedException{
                 arm.goToRelativePosition(1);
-                sleep(500);
                 await(grabber::coneIsInRange);
                 grabber.grab();
                 await(grabber::hasCone);
+                sleep(200);
                 grabber.goToMid();
-                sleep(500);
+                sleep(300);
                 arm.goToRelativePosition(0);
                 await(() -> !arm.isOut() && !elevator.isUp());
                 grabber.goToIn();
@@ -649,7 +850,21 @@ public class RobotSystem {
             // endregion
 
             // region CAMERA
-            private static OpenCvWebcam webcam;
+            // region CAMERA CONSTANTS
+            private static final double fx = 578.272;
+            private static final double fy = 578.272;
+            private static final double cx = 402.145;
+            private static final double cy = 221.506;
+
+            // UNITS ARE METERS
+            private static final double tagsize = 0.04;
+            // endregion
+
+            private static OpenCvWebcam camera;
+
+            public static void closeCamera(){
+                camera.closeCameraDevice();
+            }
             // endregion
         }
     }

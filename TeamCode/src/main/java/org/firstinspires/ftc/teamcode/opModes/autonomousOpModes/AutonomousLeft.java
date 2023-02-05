@@ -13,6 +13,7 @@ public class AutonomousLeft extends LinearOpMode {
         RobotSystem.auto.regularAuto.initializeAll(hardwareMap, telemetry, gamepad1, gamepad2);
 
         waitForStart();
+        RobotSystem.auto.regularAuto.closeCamera();
 
         new Thread(() -> {
             while (opModeIsActive()){}
@@ -25,11 +26,12 @@ public class AutonomousLeft extends LinearOpMode {
             puffer.grab();
             puffer.goToMid();
             RobotSystem.await(RobotSystem.auto.regularAuto::isStationary);
-            RobotSystem.auto.regularAuto.cycle(2);
-            RobotSystem.auto.regularAuto.follow(RobotSystem.auto.regularAuto.trajectories.scoreToPark1);
-        } catch (InterruptedException e){
-            RobotSystem.auto.regularAuto.terminate();
-        }
+            RobotSystem.auto.regularAuto.cycle(5);
+            RobotSystem.auto.regularAuto.follow(RobotSystem.auto.regularAuto.trajectories.scoreToPark3);
+            RobotSystem.await(RobotSystem.auto.regularAuto::isStationary);
+        } catch (InterruptedException e){}
+
+        RobotSystem.auto.regularAuto.terminate();
 
         while (opModeIsActive() && !RobotSystem.isStopRequested){}
     }

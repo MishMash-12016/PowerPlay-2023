@@ -74,7 +74,9 @@ public class elevator {
         wantedPosition = newWantedPosition;
 
         if (wantedPosition == elevator.bottomPosition){
-            driveTrain.fastMode();
+            if (!RobotSystem.manual.asyncCollect.isAlive()){
+                driveTrain.fastMode();
+            }
             RobotSystem.manual.asyncScore.interrupt();
         } else {
             driveTrain.slowMode();

@@ -32,7 +32,6 @@ public class driveTrain {
 
     private static final double slowDrivingStrength = 0.4;
     private static final double slowTurningStrength = 0.2;
-
     // endregion
 
     // region VARIABLES

@@ -12,9 +12,12 @@ public class puffer {
     // endregion
 
     // region CONSTANTS
-    private static final double inPosition  = 0.14;
+    private static final double inPosition  = 0.16;
     private static final double midPosition = 0.5 ;
     private static final double outPosition = 0.95;
+
+    private static final double autonomousOutPosition = 0.88;
+    private static final double autonomousInPosition = 0.16;
 
     private static final double grabPosition    = 0.3;
     private static final double releasePosition = 0.2;
@@ -51,6 +54,13 @@ public class puffer {
     }
     public static void goToIn(){
         setPosition(inPosition);
+    }
+
+    public static void autonomousGoToOut(){
+        setPosition(autonomousOutPosition);
+    }
+    public static void autonomousGoToIn(){
+        setPosition(autonomousInPosition);
     }
     // endregion
 
