@@ -23,7 +23,7 @@ public class grabber {
     private static final double middlePosition = 0.68;
     private static final double inPosition     = 0.87;
     //                                             low -  -  -  -  -  -  - high
-    private static final double[] pilePositions = {0.2, 0.23, 0.28, 0.32, 0.35};
+    private static final double[] pilePositions = {0.21, 0.23, 0.28, 0.32, 0.35};
 
 
     private static final double grabPosition = 0.42;

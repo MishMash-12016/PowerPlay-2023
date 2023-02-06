@@ -10,36 +10,36 @@ import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.puffer;
 public class AutonomousLeft extends LinearOpMode {
     @Override
     public void runOpMode(){
-        RobotSystem.auto.regularAuto.initializeAll(hardwareMap, telemetry, gamepad1, gamepad2);
+        RobotSystem.regularAuto.initializeAll(hardwareMap, telemetry, gamepad1, gamepad2);
 
         waitForStart();
-        RobotSystem.auto.regularAuto.getLatestDetection();
-        RobotSystem.auto.regularAuto.closeCamera();
+        RobotSystem.regularAuto.getLatestDetection();
+        RobotSystem.regularAuto.closeCamera();
 
         new Thread(() -> {
             while (opModeIsActive()){}
-            RobotSystem.auto.regularAuto.terminate();
+            RobotSystem.regularAuto.terminate();
         }).start();
 
         RobotSystem.startAllAutonomousControllers();
         try {
-            RobotSystem.auto.regularAuto.follow(RobotSystem.auto.regularAuto.trajectories.startToScore);
+            RobotSystem.regularAuto.follow(RobotSystem.regularAuto.trajectories.startToScore);
             puffer.grab();
             puffer.goToMid();
-            RobotSystem.await(RobotSystem.auto.regularAuto::isStationary);
-            RobotSystem.auto.regularAuto.cycle(5);
+            RobotSystem.await(RobotSystem.regularAuto::isStationary);
+            RobotSystem.regularAuto.cycle(5);
 
-            switch (RobotSystem.auto.regularAuto.detection){
+            switch (RobotSystem.regularAuto.detection){
                 case (1):{
-                    RobotSystem.auto.regularAuto.follow(RobotSystem.auto.regularAuto.trajectories.scoreToPark1);
+                    RobotSystem.regularAuto.follow(RobotSystem.regularAuto.trajectories.scoreToPark1);
                     break;
                 }
                 case (2):{
-                    RobotSystem.auto.regularAuto.follow(RobotSystem.auto.regularAuto.trajectories.scoreToPark2);
+                    RobotSystem.regularAuto.follow(RobotSystem.regularAuto.trajectories.scoreToPark2);
                     break;
                 }
                 case (3):{
-                    RobotSystem.auto.regularAuto.follow(RobotSystem.auto.regularAuto.trajectories.scoreToPark3);
+                    RobotSystem.regularAuto.follow(RobotSystem.regularAuto.trajectories.scoreToPark3);
                     break;
                 }
             }
@@ -47,6 +47,6 @@ public class AutonomousLeft extends LinearOpMode {
 
         while (opModeIsActive() && !RobotSystem.isStopRequested){}
 
-        RobotSystem.auto.regularAuto.terminate();
+        RobotSystem.regularAuto.terminate();
     }
 }

@@ -23,6 +23,8 @@ import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
+
+import java.util.HashMap;
 import java.util.concurrent.Callable;
 
 public class RobotSystem {
@@ -523,405 +525,457 @@ public class RobotSystem {
     // endregion
 
     // region AUTONOMOUS FUNCTIONS
-    public static class auto {
-        public static class safeAuto {
-            // region INITIALIZATION
-            public static void initializeAll(HardwareMap hardwareMap, Telemetry telemetry, Gamepad gamepad1, Gamepad gamepad2){
-                RobotSystem.initialize(hardwareMap, telemetry, gamepad1, gamepad2);
-                initialize();
+    private static abstract class auto {
+        // region INITIALIZATION
+        public static void initializeAll(HardwareMap hardwareMap, Telemetry telemetry, Gamepad gamepad1, Gamepad gamepad2){
+            RobotSystem.initialize(hardwareMap, telemetry, gamepad1, gamepad2);
+            initialize();
 
-                arm.initialize();
-                puffer.initialize();
-                grabber.initialize();
-                elevator.initialize();
-            }
-
-            public static void initialize(){
-                initializeCamera();
-
-                // region INITIALIZE DRIVE
-                drive = new SampleMecanumDrive(hardwareMap);
-                drive.setPoseEstimate(positions.start);
-                // endregion
-
-                // region CREATE TRAJECTORIES
-                // region START TO SCORE
-                trajectories.startToScore = drive.trajectorySequenceBuilder(positions.start)
-                        .setTangent(positions.startToScoreStartingTangent)
-                        .splineToConstantHeading(positions.startToScoreTemp1, Math.abs(-90))
-                        .splineToConstantHeading(positions.startToScoreTemp2, Math.abs(-90))
-                        .setTangent(Math.toRadians(90))
-                        .splineToConstantHeading(positions.startToScoreTemp3, Math.toRadians(180))
-                        .build();
-                // endregion
-
-                // region SCORE TO COLLECT
-                trajectories.scoreToCollect = drive.trajectorySequenceBuilder(positions.score)
-                        .setTangent(0)
-                        .splineToSplineHeading(positions.collect, Math.toRadians(0))
-                        .build();
-                // endregion
-
-                // region COLLECT TO SCORE
-                trajectories.collectToScore = drive.trajectorySequenceBuilder(positions.collect)
-                        .setTangent(Math.toRadians(180))
-                        .splineToSplineHeading(positions.score, Math.toRadians(180))
-                        .build();
-                // endregion
-
-                // region SCORE TO PARK1
-                trajectories.scoreToPark1 = drive.trajectorySequenceBuilder(positions.score)
-                        .setTangent(Math.toRadians(0))
-                        .splineToConstantHeading(positions.park1, Math.toRadians(0))
-                        .build();
-                // endregion
-
-                // region SCORE TO PARK2
-                trajectories.scoreToPark2 = drive.trajectorySequenceBuilder(positions.score)
-                        .splineToConstantHeading(positions.park2, Math.toRadians(0))
-                        .build();
-                // endregion
-
-                // region SCORE TO PARK3
-                trajectories.scoreToPark3 = drive.trajectorySequenceBuilder(positions.score)
-                        .splineToConstantHeading(positions.park3, Math.toRadians(180))
-                        .build();
-                // endregion
-                // endregion
-            }
-            // endregion
-
-            // region MOVEMENT
-            public static class trajectories{
-                public static TrajectorySequence startToScore;
-                public static TrajectorySequence scoreToCollect;
-                public static TrajectorySequence collectToScore;
-                public static TrajectorySequence scoreToPark1;
-                public static TrajectorySequence scoreToPark2;
-                public static TrajectorySequence scoreToPark3;
-            }
-            private static class positions{
-                public static final double startToScoreStartingTangent = Math.toRadians(-40);
-
-                public static final Pose2d start   = new Pose2d(32.8, 58, Math.toRadians(-90));
-                public static final Pose2d score   = new Pose2d(24, 12, Math.toRadians(-90));
-                public static final Pose2d collect = new Pose2d(36, 12, Math.toRadians(180));
-                public static final Vector2d park1 = new Vector2d(65, 12);
-                public static final Vector2d park2 = new Vector2d(36, 12);
-                public static final Vector2d park3 = new Vector2d(12, 12);
-
-                public static final Vector2d startToScoreTemp1 = new Vector2d(36, 48);
-                public static final Vector2d startToScoreTemp2 = new Vector2d(36, 12);
-                public static final Vector2d startToScoreTemp3 = new Vector2d(score.getX(), score.getY());
-
-            }
-            // endregion
-
-            // region FUNCTIONALITY
-            public static void cycle(int cycleAmount) throws InterruptedException{
-                for (int coneHeight = 4; coneHeight > 4 - cycleAmount; coneHeight--) {
-                    goToCollect();
-
-                    follow(trajectories.scoreToCollect);
-                    collect(coneHeight);
-
-                    follow(trajectories.collectToScore);
-                    goToScore();
-                    score();
-                }
-                finishScoring();
-            }
-
-            public static void goToCollect() throws InterruptedException{
-                finishScoring();
-                await(() -> !elevator.isUp());
-            }
-            public static void collect(int coneNum) throws InterruptedException{
-                await(safeAuto::isStationary);
-                grabber.goToConeSlow(coneNum);
-                await(() -> !grabber.isMoving());
-                grabber.release();
-                arm.goToRelativePosition(1);
-                sleep(500);
-                await(grabber::coneIsInRange);
-                grabber.grab();
-                await(grabber::hasCone);
-                grabber.goToMid();
-                sleep(500);
-                arm.goToRelativePosition(0);
-                await(() -> !arm.isOut());
-            }
-            public static void goToScore() throws InterruptedException{
-                grabber.goToIn();
-                await(() -> !grabber.isOut());
-                grabber.release();
-                puffer.grab();
-                puffer.goToMid();
-            }
-            public static void score() throws InterruptedException{
-                elevator.wantedPosition = elevator.highPosition;
-                await(elevator::almostReachedWantedPosition);
-                puffer.goToOut();
-                sleep(500);
-                await(safeAuto::isStationary);
-                puffer.release();
-                sleep(500);
-            }
-            public static void finishScoring() throws InterruptedException{
-                puffer.goToIn();
-                sleep(500);
-                elevator.wantedPosition = elevator.bottomPosition;
-            }
-            // endregion
-
-            // region DRIVE
-            private static SampleMecanumDrive drive;
-            // endregion
-
-            // region CAMERA
-            private static OpenCvWebcam webcam;
-            public static void initializeCamera(){
-                webcam = OpenCvCameraFactory.getInstance().createWebcam(
-                        hardwareMap.get(WebcamName.class, "cam"),
-                        hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()));
-                webcam.setPipeline(new PipeLine(false));
-
-                webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
-                    @Override
-                    public void onOpened() {
-                        webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
-                    }
-
-                    @Override
-                    public void onError(int errorCode) {}
-                });
-            }
-            // endregion
-
-            // region GLOBAL FUNCTIONALITY
-            public static boolean isStationary(){
-                return !drive.isBusy();
-            }
-            public static void follow(TrajectorySequence sequence){
-                drive.followTrajectorySequenceAsync(sequence);
-                followThread.start();
-            }
-            private static final Thread followThread = new Thread(() -> {
-                while (!isStationary() && !isStopRequested){
-                    drive.update();
-                }
-            });
-            public static void terminate(){
-                RobotSystem.terminate();
-            }
-            // endregion
+            arm.initialize();
+            puffer.initialize();
+            grabber.initialize();
+            elevator.initialize();
         }
 
-        public static class regularAuto {
-            // region INITIALIZATION
-            public static void initializeAll(HardwareMap hardwareMap, Telemetry telemetry, Gamepad gamepad1, Gamepad gamepad2){
-                RobotSystem.initialize(hardwareMap, telemetry, gamepad1, gamepad2);
-                initialize();
+        public static void initialize(){
+            // region INITIALIZE CAMERA
+            int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+            camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "cam"), cameraMonitorViewId);
 
-                arm.initialize();
-                puffer.initialize();
-                grabber.initialize();
-                elevator.initialize();
-            }
-
-            public static void initialize(){
-                // region INITIALIZE CAMERA
-                int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-                camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "cam"), cameraMonitorViewId);
-
-                camera.setPipeline(aprilTagDetectionPipeline);
-                camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+            camera.setPipeline(aprilTagDetectionPipeline);
+            camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+            {
+                @Override
+                public void onOpened()
                 {
-                    @Override
-                    public void onOpened()
-                    {
-                        camera.startStreaming(800,448, OpenCvCameraRotation.UPRIGHT);
-                    }
-
-                    @Override
-                    public void onError(int errorCode)
-                    {
-
-                    }
-                });
-                // endregion
-
-                // region INITIALIZE DRIVE
-                drive = new SampleMecanumDrive(hardwareMap);
-                drive.setPoseEstimate(positions.start);
-                // endregion
-
-                // region CREATE TRAJECTORIES
-                // region START TO SCORE
-                trajectories.startToScore = drive.trajectorySequenceBuilder(positions.start)
-                        .setTangent(positions.startToScoreStartingTangent)
-                        .splineToSplineHeading(positions.startToScoreTemp1, Math.toRadians(-90.0))
-                        .splineToSplineHeading(positions.startToScoreTemp2, Math.toRadians(-90.0))
-                        .splineToSplineHeading(positions.score, Math.toRadians(-90.0))
-                        .build();
-                // endregion
-
-                // region SCORE TO PARKING 1
-                trajectories.scoreToPark1 = drive.trajectorySequenceBuilder(positions.score)
-                        .setTangent(Math.toRadians(45.0))
-                        .splineToSplineHeading(positions.scoreToPark1Temp1, Math.toRadians(0.0))
-                        .splineTo(positions.park1, Math.toRadians(90.0))
-                        .build();
-                // endregion
-
-                // region SCORE TO PARKING 2
-                trajectories.scoreToPark2 = drive.trajectorySequenceBuilder(positions.score)
-                        .setTangent(Math.toRadians(90.0))
-                        .splineToSplineHeading(positions.park2, Math.toRadians(90.0)).build();
-                // endregion
-
-                // region SCORE TO PARKING 3
-                trajectories.scoreToPark3 = drive.trajectorySequenceBuilder(positions.score)
-                        .setTangent(Math.toRadians(100.0))
-                        .splineToSplineHeading(positions.scoreToPark3Temp1, Math.toRadians(180.0))
-                        .splineTo(positions.park3, Math.toRadians(90.0))
-                        .build();
-                // endregion
-                // endregion
-            }
-
-            public static void terminate(){
-                RobotSystem.terminate();
-                driveTrain.resetFieldOriented();
-            }
-            // endregion
-
-            // region MOVEMENT
-            private static SampleMecanumDrive drive;
-            public static class trajectories{
-                public static TrajectorySequence startToScore;
-                public static TrajectorySequence scoreToPark3;
-                public static TrajectorySequence scoreToPark2;
-                public static TrajectorySequence scoreToPark1;
-            }
-            private static class positions{
-                public static final double startToScoreStartingTangent = Math.toRadians(-40);
-                public static final Pose2d start = new Pose2d(30.7, 61.4, Math.toRadians(-90.0));
-                public static final Pose2d score = new Pose2d(38.0, 5.5, Math.toRadians(-164.0));
-                public static final Pose2d park2 = new Pose2d(36.0, 24.0, Math.toRadians(-90.0));
-                public static final Vector2d park1 = new Vector2d(60, 24.0);
-                public static final Vector2d park3 = new Vector2d(16.0, 24.0);
-
-                public static final Pose2d scoreToPark1Temp1 = new Pose2d(48, 12, Math.toRadians(180.0));
-
-                public static final Pose2d scoreToPark3Temp1 = new Pose2d(24, 16, Math.toRadians(0.0));
-
-                public static final Pose2d startToScoreTemp1 = new Pose2d(36.0, 48.0, Math.toRadians(-90.0));
-                public static final Pose2d startToScoreTemp2 = new Pose2d(36.0, 24.0, Math.toRadians(-90.0));
-            }
-            public static void follow(TrajectorySequence sequence){
-                drive.followTrajectorySequenceAsync(sequence);
-                while (!isStationary() && !isStopRequested){
-                    drive.update();
+                    camera.startStreaming(800,448, OpenCvCameraRotation.UPRIGHT);
                 }
-            }
-            public static void asyncFollow(TrajectorySequence sequence){
-                drive.followTrajectorySequenceAsync(sequence);
-                followThread.start();
-            }
-            private static final Thread followThread = new Thread(() -> {
-                while (!isStationary() && !isStopRequested){
-                    drive.update();
+
+                @Override
+                public void onError(int errorCode)
+                {
+
                 }
             });
             // endregion
 
-            // region CYCLE
-            public static void cycle(int cycleAmount) throws InterruptedException{
-                for (int coneHeight = 4; coneHeight > 4 - cycleAmount; coneHeight--) {
-                    scoreAndPrepare(coneHeight);
-                    collect();
+            // region INITIALIZE DRIVE
+            drive = new SampleMecanumDrive(hardwareMap);
+            drive.setPoseEstimate(positions.start);
+            // endregion
+
+            initializeTrajectories();
+        }
+
+        public static void terminate(){
+            RobotSystem.terminate();
+            driveTrain.resetFieldOriented();
+        }
+        // endregion
+
+        // region MOVEMENT
+        private static SampleMecanumDrive drive;
+        abstract static class positions{
+            public static Pose2d start;
+        }
+        abstract static class trajectories{
+            public static TrajectorySequence scoreToPark1;
+            public static TrajectorySequence scoreToPark2;
+            public static TrajectorySequence scoreToPark3;
+        }
+
+        private static void initializeTrajectories(){}
+
+        public static void follow(TrajectorySequence sequence){
+            drive.followTrajectorySequenceAsync(sequence);
+            while (!isStationary() && !isStopRequested){
+                drive.update();
+            }
+        }
+        public static void asyncFollow(TrajectorySequence sequence){
+            drive.followTrajectorySequenceAsync(sequence);
+            followThread.start();
+        }
+        private static final Thread followThread = new Thread(() -> {
+            while (!isStationary() && !isStopRequested){
+                drive.update();
+            }
+        });
+
+        public static void park() {
+            switch (detection) {
+                case (1): {
+                    follow(trajectories.scoreToPark1);
+                    break;
                 }
-                score();
-            }
+                case (2): {
+                    follow(trajectories.scoreToPark2);
+                    break;
+                }
+                case (3): {
+                    follow(trajectories.scoreToPark3);
+                    break;
+                }
 
-            public static void score() throws InterruptedException{
-                elevator.wantedPosition = elevator.highPosition;
-                await(elevator::almostReachedWantedPosition, 1000);
-                puffer.autonomousGoToOut();
-                sleep(275);
-                puffer.release();
-                sleep(300);
-                puffer.autonomousGoToIn();
-                sleep(100);
-                elevator.wantedPosition = elevator.bottomPosition;
             }
-            public static void scoreAndPrepare(int coneHeight) throws InterruptedException{
-                elevator.wantedPosition = elevator.highPosition;
-                sleep(500);
-                prepareForCollect(coneHeight);
-                await(elevator::almostReachedWantedPosition, 3000);
-                puffer.autonomousGoToOut();
-                sleep(275);
-                puffer.release();
-                sleep(300);
-                puffer.autonomousGoToIn();
-                sleep(100);
-                elevator.wantedPosition = elevator.bottomPosition;
-            }
-            public static void prepareForCollect(int cone) throws InterruptedException{
-                grabber.goToConeSlow(cone);
-                await(() -> !grabber.isMoving());
-                arm.goToRelativePosition(0.65);
-                grabber.release();
-            }
-            public static void collect() throws InterruptedException{
-                arm.goToRelativePosition(1);
-                await(grabber::coneIsInRange, 800);
-                grabber.grab();
-                await(grabber::hasCone, 800);
-                sleep(400);
-                grabber.goToMid();
-                sleep(300);
-                arm.goToRelativePosition(0);
-                await(() -> !arm.isOut() && !elevator.isUp(), 1000);
-                grabber.goToIn();
-                await(() -> !grabber.isOut(), 1000);
-                grabber.release();
-                puffer.grab();
-                puffer.goToMid();
-            }
+        }
 
-            public static boolean isStationary(){
-                return !drive.isBusy();
+        public static boolean isStationary(){
+            return !drive.isBusy();
+        }
+        // endregion
+
+        // region CYCLE
+        public static void cycle(int cycleAmount) throws InterruptedException{
+            for (int coneHeight = 4; coneHeight > 4 - cycleAmount; coneHeight--) {
+                score(coneHeight);
+                collect();
             }
-            // endregion
+            firstScore();
+        }
 
-            // region CAMERA
-            // region CAMERA CONSTANTS
-            private static final double fx = 578.272;
-            private static final double fy = 578.272;
-            private static final double cx = 402.145;
-            private static final double cy = 221.506;
+        public static void firstScore() throws InterruptedException{}
+        public static void score(int coneHeight) throws InterruptedException{}
 
-            // UNITS ARE METERS
-            private static final double tagsize = 0.04;
-            // endregion
-            private static final AprilTagDetectionPipeline aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
-            private static OpenCvWebcam camera;
-            public  static int detection = 3;
+        public static void collect() throws InterruptedException{}
+        // endregion
 
-            public static void closeCamera(){
-                camera.closeCameraDevice();
+        // region CAMERA
+        // region CAMERA CONSTANTS
+        private static final double fx = 578.272;
+        private static final double fy = 578.272;
+        private static final double cx = 402.145;
+        private static final double cy = 221.506;
+
+        // UNITS ARE METERS
+        private static final double tagsize = 0.04;
+        // endregion
+        private static final AprilTagDetectionPipeline aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
+        private static OpenCvWebcam camera;
+        public  static int detection = 3;
+
+        public static void closeCamera(){
+            camera.closeCameraDevice();
+        }
+        public static void getLatestDetection(){
+            if(aprilTagDetectionPipeline.getLatestDetections().size() == 1)
+            {
+                detection = aprilTagDetectionPipeline.getLatestDetections().get(0).id;
             }
-            public static void getLatestDetection(){
-                if(aprilTagDetectionPipeline.getLatestDetections().size() == 1)
+        }
+        // endregion
+        HashMap<String, String> capitalCities = new HashMap<String, String>();
+    }
+    public static class safeAuto {
+        // region INITIALIZATION
+        public static void initializeAll(HardwareMap hardwareMap, Telemetry telemetry, Gamepad gamepad1, Gamepad gamepad2){
+            RobotSystem.initialize(hardwareMap, telemetry, gamepad1, gamepad2);
+            initialize();
+
+            arm.initialize();
+            puffer.initialize();
+            grabber.initialize();
+            elevator.initialize();
+        }
+
+        public static void initialize(){
+            // region INITIALIZE CAMERA
+            int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+            camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "cam"), cameraMonitorViewId);
+
+            camera.setPipeline(aprilTagDetectionPipeline);
+            camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+            {
+                @Override
+                public void onOpened()
                 {
-                    detection = aprilTagDetectionPipeline.getLatestDetections().get(0).id;
+                    camera.startStreaming(800,448, OpenCvCameraRotation.UPRIGHT);
                 }
-            }
+
+                @Override
+                public void onError(int errorCode)
+                {
+
+                }
+            });
+            // endregion
+
+            // region INITIALIZE DRIVE
+            drive = new SampleMecanumDrive(hardwareMap);
+            drive.setPoseEstimate(regularAuto.positions.start);
+            // endregion
+
+            // region CREATE TRAJECTORIES
+            // region START TO SCORE
+            trajectories.startToScore = drive.trajectorySequenceBuilder(regularAuto.positions.start)
+                    .setTangent(regularAuto.positions.startToScoreStartingTangent)
+                    .splineToSplineHeading(regularAuto.positions.startToScoreTemp1, Math.toRadians(-90.0))
+                    .splineToSplineHeading(regularAuto.positions.startToScoreTemp2, Math.toRadians(-90.0))
+                    .splineToSplineHeading(regularAuto.positions.score, Math.toRadians(-90.0))
+                    .build();
+            // endregion
+
+            // region SCORE TO PARKING 1
+            regularAuto.trajectories.scoreToPark1 = drive.trajectorySequenceBuilder(regularAuto.positions.score)
+                    .setTangent(Math.toRadians(45.0))
+                    .splineToSplineHeading(regularAuto.positions.scoreToPark1Temp1, Math.toRadians(0.0))
+                    .splineTo(regularAuto.positions.park1, Math.toRadians(90.0))
+                    .build();
+            // endregion
+
+            // region SCORE TO PARKING 2
+            regularAuto.trajectories.scoreToPark2 = drive.trajectorySequenceBuilder(regularAuto.positions.score)
+                    .setTangent(Math.toRadians(90.0))
+                    .splineToSplineHeading(regularAuto.positions.park2, Math.toRadians(90.0)).build();
+            // endregion
+
+            // region SCORE TO PARKING 3
+            regularAuto.trajectories.scoreToPark3 = drive.trajectorySequenceBuilder(regularAuto.positions.score)
+                    .setTangent(Math.toRadians(100.0))
+                    .splineToSplineHeading(regularAuto.positions.scoreToPark3Temp1, Math.toRadians(180.0))
+                    .splineTo(regularAuto.positions.park3, Math.toRadians(90.0))
+                    .build();
+            // endregion
             // endregion
         }
+
+        public static void terminate(){
+            RobotSystem.terminate();
+            driveTrain.resetFieldOriented();
+        }
+        // endregion
+
+        // region MOVEMENT
+        private static SampleMecanumDrive drive;
+        public static class trajectories{
+            public static TrajectorySequence startToScore;
+            public static TrajectorySequence scoreToPark3;
+            public static TrajectorySequence scoreToPark2;
+            public static TrajectorySequence scoreToPark1;
+        }
+        private static class positions{
+            public static final double startToScoreStartingTangent = Math.toRadians(-40);
+            public static final Pose2d start = new Pose2d(30.7, 61.4, Math.toRadians(-90.0));
+            public static final Pose2d score = new Pose2d(38.0, 5.5, Math.toRadians(-164.0));
+            public static final Pose2d park2 = new Pose2d(36.0, 24.0, Math.toRadians(-90.0));
+            public static final Vector2d park1 = new Vector2d(60, 24.0);
+            public static final Vector2d park3 = new Vector2d(16.0, 24.0);
+
+            public static final Pose2d scoreToPark1Temp1 = new Pose2d(48, 12, Math.toRadians(180.0));
+
+            public static final Pose2d scoreToPark3Temp1 = new Pose2d(24, 16, Math.toRadians(0.0));
+
+            public static final Pose2d startToScoreTemp1 = new Pose2d(36.0, 48.0, Math.toRadians(-90.0));
+            public static final Pose2d startToScoreTemp2 = new Pose2d(36.0, 24.0, Math.toRadians(-90.0));
+        }
+        public static void follow(TrajectorySequence sequence){
+            drive.followTrajectorySequenceAsync(sequence);
+            while (!isStationary() && !isStopRequested){
+                drive.update();
+            }
+        }
+        public static void asyncFollow(TrajectorySequence sequence){
+            drive.followTrajectorySequenceAsync(sequence);
+            followThread.start();
+        }
+        private static final Thread followThread = new Thread(() -> {
+            while (!isStationary() && !isStopRequested){
+                drive.update();
+            }
+        });
+        // endregion
+
+        // region CYCLE
+        public static void cycle(int cycleAmount) throws InterruptedException{
+            for (int coneHeight = 4; coneHeight > 4 - cycleAmount; coneHeight--) {
+                scoreAndPrepare(coneHeight);
+                collect();
+            }
+            score();
+        }
+
+        public static void score() throws InterruptedException{
+            elevator.wantedPosition = elevator.highPosition;
+            await(elevator::almostReachedWantedPosition, 1000);
+            puffer.autonomousGoToOut();
+            sleep(275);
+            puffer.release();
+            sleep(300);
+            puffer.autonomousGoToIn();
+            sleep(100);
+            elevator.wantedPosition = elevator.bottomPosition;
+        }
+        public static void scoreAndPrepare(int coneHeight) throws InterruptedException{
+            elevator.wantedPosition = elevator.highPosition;
+            sleep(500);
+            prepareForCollect(coneHeight);
+            await(elevator::almostReachedWantedPosition, 3000);
+            puffer.autonomousGoToOut();
+            sleep(275);
+            puffer.release();
+            sleep(300);
+            puffer.autonomousGoToIn();
+            sleep(100);
+            elevator.wantedPosition = elevator.bottomPosition;
+        }
+        public static void prepareForCollect(int cone) throws InterruptedException{
+            grabber.goToConeSlow(cone);
+            await(() -> !grabber.isMoving());
+            arm.goToRelativePosition(0.65);
+            grabber.release();
+        }
+        public static void collect() throws InterruptedException{
+            arm.goToRelativePosition(1);
+            await(grabber::coneIsInRange, 800);
+            grabber.grab();
+            await(grabber::hasCone, 800);
+            sleep(400);
+            grabber.goToMid();
+            sleep(300);
+            arm.goToRelativePosition(0);
+            await(() -> !arm.isOut() && !elevator.isUp(), 1000);
+            grabber.goToIn();
+            await(() -> !grabber.isOut(), 1000);
+            grabber.release();
+            puffer.grab();
+            puffer.goToMid();
+        }
+
+        public static boolean isStationary(){
+            return !drive.isBusy();
+        }
+        // endregion
+
+        // region CAMERA
+        // region CAMERA CONSTANTS
+        private static final double fx = 578.272;
+        private static final double fy = 578.272;
+        private static final double cx = 402.145;
+        private static final double cy = 221.506;
+
+        // UNITS ARE METERS
+        private static final double tagsize = 0.04;
+        // endregion
+        private static final AprilTagDetectionPipeline aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
+        private static OpenCvWebcam camera;
+        public  static int detection = 3;
+
+        public static void closeCamera(){
+            camera.closeCameraDevice();
+        }
+        public static void getLatestDetection(){
+            if(aprilTagDetectionPipeline.getLatestDetections().size() == 1)
+            {
+                detection = aprilTagDetectionPipeline.getLatestDetections().get(0).id;
+            }
+        }
+        // endregion
+    }
+
+    public static class regularAuto extends auto{
+        // region MOVEMENT
+        private static class positions{
+            public static final double startToScoreStartingTangent = Math.toRadians(-40);
+            public static final Pose2d start = new Pose2d(30.7, 61.4, Math.toRadians(-90.0));
+            public static final Pose2d score = new Pose2d(38.0, 5.5, Math.toRadians(-164.0));
+            public static final Pose2d park2 = new Pose2d(36.0, 24.0, Math.toRadians(-90.0));
+            public static final Vector2d park1 = new Vector2d(60, 24.0);
+            public static final Vector2d park3 = new Vector2d(16.0, 24.0);
+
+            public static final Pose2d scoreToPark1Temp1 = new Pose2d(48, 12, Math.toRadians(180.0));
+
+            public static final Pose2d scoreToPark3Temp1 = new Pose2d(24, 16, Math.toRadians(0.0));
+
+            public static final Pose2d startToScoreTemp1 = new Pose2d(36.0, 48.0, Math.toRadians(-90.0));
+            public static final Pose2d startToScoreTemp2 = new Pose2d(36.0, 24.0, Math.toRadians(-90.0));
+        }
+        // endregion
+
+        // region CYCLE
+        public static void cycle(int cycleAmount) throws InterruptedException{
+            for (int coneHeight = 4; coneHeight > 4 - cycleAmount; coneHeight--) {
+                scoreAndPrepare(coneHeight);
+                collect();
+            }
+            score();
+        }
+
+        public static void score() throws InterruptedException{
+            elevator.wantedPosition = elevator.highPosition;
+            await(elevator::almostReachedWantedPosition, 1000);
+            puffer.autonomousGoToOut();
+            sleep(275);
+            puffer.release();
+            sleep(300);
+            puffer.autonomousGoToIn();
+            sleep(100);
+            elevator.wantedPosition = elevator.bottomPosition;
+        }
+        public static void scoreAndPrepare(int coneHeight) throws InterruptedException{
+            elevator.wantedPosition = elevator.highPosition;
+            sleep(500);
+            prepareForCollect(coneHeight);
+            await(elevator::almostReachedWantedPosition, 3000);
+            puffer.autonomousGoToOut();
+            sleep(275);
+            puffer.release();
+            sleep(300);
+            puffer.autonomousGoToIn();
+            sleep(100);
+            elevator.wantedPosition = elevator.bottomPosition;
+        }
+        public static void prepareForCollect(int cone) throws InterruptedException{
+            grabber.goToConeSlow(cone);
+            await(() -> !grabber.isMoving());
+            arm.goToRelativePosition(0.65);
+            grabber.release();
+        }
+        public static void collect() throws InterruptedException{
+            arm.goToRelativePosition(1);
+            await(grabber::coneIsInRange, 800);
+            grabber.grab();
+            await(grabber::hasCone, 800);
+            sleep(400);
+            grabber.goToMid();
+            sleep(300);
+            arm.goToRelativePosition(0);
+            await(() -> !arm.isOut() && !elevator.isUp(), 1000);
+            grabber.goToIn();
+            await(() -> !grabber.isOut(), 1000);
+            grabber.release();
+            puffer.grab();
+            puffer.goToMid();
+        }
+
+        public static boolean isStationary(){
+            return !drive.isBusy();
+        }
+        // endregion
+
+        // region CAMERA
+        // region CAMERA CONSTANTS
+        private static final double fx = 578.272;
+        private static final double fy = 578.272;
+        private static final double cx = 402.145;
+        private static final double cy = 221.506;
+
+        // UNITS ARE METERS
+        private static final double tagsize = 0.04;
+        // endregion
+        private static final AprilTagDetectionPipeline aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
+        private static OpenCvWebcam camera;
+        public  static int detection = 3;
+
+        public static void closeCamera(){
+            camera.closeCameraDevice();
+        }
+        public static void getLatestDetection(){
+            if(aprilTagDetectionPipeline.getLatestDetections().size() == 1)
+            {
+                detection = aprilTagDetectionPipeline.getLatestDetections().get(0).id;
+            }
+        }
+        // endregion
     }
     // endregion
 }
