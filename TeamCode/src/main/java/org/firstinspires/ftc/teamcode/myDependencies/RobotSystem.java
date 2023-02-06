@@ -561,7 +561,6 @@ public class RobotSystem {
 
             // region INITIALIZE DRIVE
             drive = new SampleMecanumDrive(hardwareMap);
-            drive.setPoseEstimate(positions.start);
             // endregion
 
             initializeTrajectories();
@@ -575,14 +574,7 @@ public class RobotSystem {
 
         // region MOVEMENT
         private static SampleMecanumDrive drive;
-        abstract static class positions{
-            public static Pose2d start;
-        }
-        abstract static class trajectories{
-            public static TrajectorySequence scoreToPark1;
-            public static TrajectorySequence scoreToPark2;
-            public static TrajectorySequence scoreToPark3;
-        }
+        public static HashMap<String, TrajectorySequence> trajectories;
 
         private static void initializeTrajectories(){}
 
@@ -605,15 +597,15 @@ public class RobotSystem {
         public static void park() {
             switch (detection) {
                 case (1): {
-                    follow(trajectories.scoreToPark1);
+                    follow(trajectories.get("scoreToPark1"));
                     break;
                 }
                 case (2): {
-                    follow(trajectories.scoreToPark2);
+                    follow(trajectories.get("scoreToPark2"));
                     break;
                 }
                 case (3): {
-                    follow(trajectories.scoreToPark3);
+                    follow(trajectories.get("scoreToPark3"));
                     break;
                 }
 
@@ -664,8 +656,8 @@ public class RobotSystem {
             }
         }
         // endregion
-        HashMap<String, String> capitalCities = new HashMap<String, String>();
     }
+
     public static class safeAuto {
         // region INITIALIZATION
         public static void initializeAll(HardwareMap hardwareMap, Telemetry telemetry, Gamepad gamepad1, Gamepad gamepad2){
@@ -874,13 +866,13 @@ public class RobotSystem {
 
     public static class regularAuto extends auto{
         // region MOVEMENT
-        private static class positions{
+        private static final HashMap<String, Pose2d> positions = new HashMap<>();
             public static final double startToScoreStartingTangent = Math.toRadians(-40);
-            public static final Pose2d start = new Pose2d(30.7, 61.4, Math.toRadians(-90.0));
-            public static final Pose2d score = new Pose2d(38.0, 5.5, Math.toRadians(-164.0));
-            public static final Pose2d park2 = new Pose2d(36.0, 24.0, Math.toRadians(-90.0));
-            public static final Vector2d park1 = new Vector2d(60, 24.0);
-            public static final Vector2d park3 = new Vector2d(16.0, 24.0);
+            public static final Pose2d start = new Pose2d(30.7, 61.4, Math.toRadians(-90.0) );
+            public static final Pose2d score = new Pose2d(38.0, 5.5 , Math.toRadians(-164.0));
+            public static final Pose2d park2 = new Pose2d(36.0, 24.0, Math.toRadians(-90.0) );
+            public static final Pose2d park1 = new Pose2d(60  , 24.0, Math.toRadians(-90)   );
+            public static final Pose2d park3 = new Pose2d(16.0, 24.0, Math.toRadians(-90)   );
 
             public static final Pose2d scoreToPark1Temp1 = new Pose2d(48, 12, Math.toRadians(180.0));
 
@@ -888,7 +880,6 @@ public class RobotSystem {
 
             public static final Pose2d startToScoreTemp1 = new Pose2d(36.0, 48.0, Math.toRadians(-90.0));
             public static final Pose2d startToScoreTemp2 = new Pose2d(36.0, 24.0, Math.toRadians(-90.0));
-        }
         // endregion
 
         // region CYCLE
@@ -945,10 +936,6 @@ public class RobotSystem {
             grabber.release();
             puffer.grab();
             puffer.goToMid();
-        }
-
-        public static boolean isStationary(){
-            return !drive.isBusy();
         }
         // endregion
 
