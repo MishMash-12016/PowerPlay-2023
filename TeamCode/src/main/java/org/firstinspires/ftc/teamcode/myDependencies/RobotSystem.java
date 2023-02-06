@@ -2,12 +2,19 @@ package org.firstinspires.ftc.teamcode.myDependencies;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.*;
 import org.firstinspires.ftc.teamcode.myDependencies.oldFiles.PipeLine;
 import org.firstinspires.ftc.teamcode.roadRunnerDependencies.drive.SampleMecanumDrive;
@@ -60,6 +67,21 @@ public class RobotSystem {
         RobotSystem.telemetry   = telemetry  ;
         RobotSystem.gamepad1    = gamepad1   ;
         RobotSystem.gamepad2    = gamepad2   ;
+
+        // region INITIALIZE IMU
+        imu = RobotSystem.hardwareMap.get(BNO055IMU.class, "imu");
+
+        // initializing the imu
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+
+        parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
+        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.calibrationDataFile = "BNO055IMUCalibration.json";
+        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
+
+        imu.initialize(parameters);
+        imu.startAccelerationIntegration(new Position(), new Velocity(), 10);
+        // endregion
     }
     public static void reset(){
         isStopRequested = false;
@@ -84,6 +106,20 @@ public class RobotSystem {
         isStopRequested = true;
 
         telemetry.update();
+    }
+
+    private static BNO055IMU imu;
+    public static double getRobotAngle() {
+        // get the angle from the imu
+        double angle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle;
+
+        // normalize the angle
+        if (angle < 0) {
+            angle += Math.PI * 2;
+        }
+        angle = Math.PI * 2 - angle;
+
+        return angle;
     }
     // endregion
 
@@ -247,20 +283,38 @@ public class RobotSystem {
     private static final Thread cycleController = new Thread(() -> {
         while (!isStopRequested && !RobotSystem.cycleController.isInterrupted()) {
             if (!manual.asyncCollect.isAlive() && (gamepad1.left_trigger > 0 || gamepad1.left_bumper)) {
+                manual.asyncHighCollect.interrupt();
                 manual.collect();
             }
-            if (!manual.asyncHighCollect.isAlive()) {
+            else if (!manual.asyncHighCollect.isAlive()) {
                 if (buttonController.firstDpad_up()) {
+                    manual.asyncCollect.interrupt();
                     manual.highCollect(4);
                 }
                 if (buttonController.firstDpad_right()) {
+                    manual.asyncCollect.interrupt();
                     manual.highCollect(3);
                 }
                 if (buttonController.firstDpad_down()) {
+                    manual.asyncCollect.interrupt();
                     manual.highCollect(2);
                 }
                 if (buttonController.firstDpad_left()) {
+                    manual.asyncCollect.interrupt();
                     manual.highCollect(1);
+                }
+            } else {
+                if (buttonController.firstDpad_up()) {
+                    manual.asyncHighCollect.interrupt();
+                }
+                if (buttonController.firstDpad_right()) {
+                    manual.asyncHighCollect.interrupt();
+                }
+                if (buttonController.firstDpad_down()) {
+                    manual.asyncHighCollect.interrupt();
+                }
+                if (buttonController.firstDpad_left()) {
+                    manual.asyncHighCollect.interrupt();
                 }
             }
             if (allowScoring) {
@@ -285,6 +339,7 @@ public class RobotSystem {
         }
 
         public static void highCollect(int coneNumber) {
+            manual.asyncCollect.interrupt();
             currentConeHeight = coneNumber;
             asyncHighCollect.start();
         }
@@ -298,50 +353,41 @@ public class RobotSystem {
         public static final Thread asyncHighCollect = new Thread(() -> {
             try {
                 driveTrain.slowMode();
-                grabber.goToCone(currentConeHeight);
+                grabber.goToConeSlow(currentConeHeight);
                 grabber.release();
-                sleep(200);
 
-                await(grabber::coneIsInRange);
-                grabber.grab();
+                await(() -> grabber.coneIsInRange() && !grabber.isMoving());
                 if(manual.asyncCollect.isInterrupted()){
                     throw softStopRequest;
                 }
+                if (grabber.coneIsInRange()) {
+                    grabber.grab();
 
-                await(grabber::hasCone);
-                grabber.goToMid();
-                if(manual.asyncCollect.isInterrupted()){
-                    throw softStopRequest;
-                }
-
-                if (!manual.asyncScore.isAlive()) {
-                    driveTrain.fastMode();
-                }
-
-                arm.goToRelativePosition(0);
-
-                await(() -> !arm.isOut() && !elevator.isUp() && elevator.wantedPosition == elevator.bottomPosition);
-                if(manual.asyncCollect.isInterrupted()){
-                    throw softStopRequest;
-                }
-
-                if (grabber.hasCone()) {
+                    await(grabber::hasCone);
+                    if(manual.asyncCollect.isInterrupted()){
+                        throw softStopRequest;
+                    }
+                    if (!manual.asyncScore.isAlive()) {
+                        driveTrain.fastMode();
+                    }
+                    await(() -> !arm.isOut() && !elevator.isUp() && elevator.wantedPosition == elevator.bottomPosition);
                     allowScoring = false;
                     manual.asyncScore.interrupt();
 
                     grabber.goToIn();
 
-                    await(() -> !grabber.isOut(), 900);
+                    await(() -> !grabber.isOut());
 
+                    if (grabber.hasCone()) {
+                        puffer.grab();
+                        puffer.goToMid();
+                    }
                     grabber.release();
-                    puffer.grab();
-                    puffer.goToMid();
 
                 } else {
                     grabber.goToIn();
                     grabber.release();
                 }
-
             }catch (Exception e){
                 if (e == softStopRequest){
                     arm.goToRelativePosition(0);
@@ -592,7 +638,8 @@ public class RobotSystem {
             }
             public static void collect(int coneNum) throws InterruptedException{
                 await(safeAuto::isStationary);
-                grabber.goToCone(coneNum);
+                grabber.goToConeSlow(coneNum);
+                await(() -> !grabber.isMoving());
                 grabber.release();
                 arm.goToRelativePosition(1);
                 sleep(500);
@@ -687,7 +734,7 @@ public class RobotSystem {
                 int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
                 camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "cam"), cameraMonitorViewId);
 
-                camera.setPipeline(new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy));
+                camera.setPipeline(aprilTagDetectionPipeline);
                 camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
                 {
                     @Override
@@ -721,10 +768,9 @@ public class RobotSystem {
 
                 // region SCORE TO PARKING 1
                 trajectories.scoreToPark1 = drive.trajectorySequenceBuilder(positions.score)
-                        .setTangent(Math.toRadians(90.0))
-                        .splineToSplineHeading(positions.scoreToPark1Temp1, Math.toRadians(90.0))
-                        .splineTo(positions.scoreToPark1Temp2, Math.toRadians(0.0))
-                        .splineToSplineHeading(positions.park1, Math.toRadians(0.0))
+                        .setTangent(Math.toRadians(45.0))
+                        .splineToSplineHeading(positions.scoreToPark1Temp1, Math.toRadians(0.0))
+                        .splineTo(positions.park1, Math.toRadians(90.0))
                         .build();
                 // endregion
 
@@ -736,10 +782,9 @@ public class RobotSystem {
 
                 // region SCORE TO PARKING 3
                 trajectories.scoreToPark3 = drive.trajectorySequenceBuilder(positions.score)
-                        .setTangent(Math.toRadians(90.0))
-                        .splineToSplineHeading(positions.scoreToPark3Temp1, Math.toRadians(90.0))
-                        .splineTo(positions.scoreToPark3Temp2, Math.toRadians(180.0))
-                        .splineToSplineHeading(positions.park3, Math.toRadians(180.0))
+                        .setTangent(Math.toRadians(100.0))
+                        .splineToSplineHeading(positions.scoreToPark3Temp1, Math.toRadians(180.0))
+                        .splineTo(positions.park3, Math.toRadians(90.0))
                         .build();
                 // endregion
                 // endregion
@@ -747,6 +792,7 @@ public class RobotSystem {
 
             public static void terminate(){
                 RobotSystem.terminate();
+                driveTrain.resetFieldOriented();
             }
             // endregion
 
@@ -757,28 +803,29 @@ public class RobotSystem {
                 public static TrajectorySequence scoreToPark3;
                 public static TrajectorySequence scoreToPark2;
                 public static TrajectorySequence scoreToPark1;
-
-                public static TrajectorySequence tempForTest;
             }
             private static class positions{
                 public static final double startToScoreStartingTangent = Math.toRadians(-40);
                 public static final Pose2d start = new Pose2d(30.7, 61.4, Math.toRadians(-90.0));
                 public static final Pose2d score = new Pose2d(38.0, 5.5, Math.toRadians(-164.0));
                 public static final Pose2d park2 = new Pose2d(36.0, 24.0, Math.toRadians(-90.0));
-                public static final Pose2d park1 = new Pose2d(62, 36.0, Math.toRadians(-90));
-                public static final Pose2d park3 = new Pose2d(12.0, 36.0, Math.toRadians(-90));
+                public static final Vector2d park1 = new Vector2d(60, 24.0);
+                public static final Vector2d park3 = new Vector2d(16.0, 24.0);
 
-                public static final Pose2d scoreToPark1Temp1 = new Pose2d(36.0, 24.0, Math.toRadians(-90.0));
-                public static final Vector2d scoreToPark1Temp2 = new Vector2d(48.0, 36.0);
+                public static final Pose2d scoreToPark1Temp1 = new Pose2d(48, 12, Math.toRadians(180.0));
 
-                public static final Pose2d scoreToPark3Temp1 = new Pose2d(36.0, 24.0, Math.toRadians(-90.0));
-                public static final Vector2d scoreToPark3Temp2 = new Vector2d(24.0, 36.0);
+                public static final Pose2d scoreToPark3Temp1 = new Pose2d(24, 16, Math.toRadians(0.0));
 
                 public static final Pose2d startToScoreTemp1 = new Pose2d(36.0, 48.0, Math.toRadians(-90.0));
                 public static final Pose2d startToScoreTemp2 = new Pose2d(36.0, 24.0, Math.toRadians(-90.0));
             }
-
             public static void follow(TrajectorySequence sequence){
+                drive.followTrajectorySequenceAsync(sequence);
+                while (!isStationary() && !isStopRequested){
+                    drive.update();
+                }
+            }
+            public static void asyncFollow(TrajectorySequence sequence){
                 drive.followTrajectorySequenceAsync(sequence);
                 followThread.start();
             }
@@ -800,7 +847,7 @@ public class RobotSystem {
 
             public static void score() throws InterruptedException{
                 elevator.wantedPosition = elevator.highPosition;
-                await(elevator::almostReachedWantedPosition);
+                await(elevator::almostReachedWantedPosition, 1000);
                 puffer.autonomousGoToOut();
                 sleep(275);
                 puffer.release();
@@ -813,7 +860,7 @@ public class RobotSystem {
                 elevator.wantedPosition = elevator.highPosition;
                 sleep(500);
                 prepareForCollect(coneHeight);
-                await(elevator::almostReachedWantedPosition);
+                await(elevator::almostReachedWantedPosition, 3000);
                 puffer.autonomousGoToOut();
                 sleep(275);
                 puffer.release();
@@ -822,23 +869,24 @@ public class RobotSystem {
                 sleep(100);
                 elevator.wantedPosition = elevator.bottomPosition;
             }
-            public static void prepareForCollect(int cone){
-                grabber.goToCone(cone);
+            public static void prepareForCollect(int cone) throws InterruptedException{
+                grabber.goToConeSlow(cone);
+                await(() -> !grabber.isMoving());
                 arm.goToRelativePosition(0.65);
                 grabber.release();
             }
             public static void collect() throws InterruptedException{
                 arm.goToRelativePosition(1);
-                await(grabber::coneIsInRange);
+                await(grabber::coneIsInRange, 800);
                 grabber.grab();
-                await(grabber::hasCone);
-                sleep(200);
+                await(grabber::hasCone, 800);
+                sleep(400);
                 grabber.goToMid();
                 sleep(300);
                 arm.goToRelativePosition(0);
-                await(() -> !arm.isOut() && !elevator.isUp());
+                await(() -> !arm.isOut() && !elevator.isUp(), 1000);
                 grabber.goToIn();
-                await(() -> !grabber.isOut());
+                await(() -> !grabber.isOut(), 1000);
                 grabber.release();
                 puffer.grab();
                 puffer.goToMid();
@@ -859,11 +907,18 @@ public class RobotSystem {
             // UNITS ARE METERS
             private static final double tagsize = 0.04;
             // endregion
-
+            private static final AprilTagDetectionPipeline aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
             private static OpenCvWebcam camera;
+            public  static int detection = 3;
 
             public static void closeCamera(){
                 camera.closeCameraDevice();
+            }
+            public static void getLatestDetection(){
+                if(aprilTagDetectionPipeline.getLatestDetections().size() == 1)
+                {
+                    detection = aprilTagDetectionPipeline.getLatestDetections().get(0).id;
+                }
             }
             // endregion
         }

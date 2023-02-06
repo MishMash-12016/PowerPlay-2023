@@ -20,10 +20,6 @@ public class driveTrain {
     private static DcMotor backLeft  ;
     // endregion
 
-    // region SENSORS
-    private static BNO055IMU imu;
-    // endregion
-
     // region CONSTANTS
     private static final double sq2 = 1.414;
 
@@ -70,21 +66,6 @@ public class driveTrain {
         backLeft .setDirection(DcMotorSimple.Direction.REVERSE);
         // endregion
 
-        // region SENSORS
-        imu = RobotSystem.hardwareMap.get(BNO055IMU.class, "imu");
-
-        // initializing the imu
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-
-        parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
-        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        parameters.calibrationDataFile = "BNO055IMUCalibration.json";
-        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
-
-        imu.initialize(parameters);
-        imu.startAccelerationIntegration(new Position(), new Velocity(), 10);
-        // endregion
-
         // region VARIABLES
         drivingStrength = 1;
         turningStrength = 1;
@@ -107,7 +88,7 @@ public class driveTrain {
 
             // region MAKE IT FIELD ORIENTED
             a = Math.atan2(x, y);
-            a += Math.PI * 2 - getRobotAngle() - startingAngle;
+            a += Math.PI * 2 - RobotSystem.getRobotAngle() - startingAngle;
             a = a % (Math.PI * 2);
 
             l = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
@@ -164,7 +145,7 @@ public class driveTrain {
     }
 
     public static void resetFieldOriented(){
-        startingAngle = getRobotAngle();
+        startingAngle = RobotSystem.getRobotAngle();
     }
     // endregion
 
@@ -174,18 +155,6 @@ public class driveTrain {
         frontLeft .setPower(frontLeftPower );
         backRight .setPower(backRightPower );
         backLeft  .setPower(backLeftPower  );
-    }
-    private static double getRobotAngle() {
-        // get the angle from the imu
-        double angle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle;
-
-        // normalize the angle
-        if (angle < 0) {
-            angle += Math.PI * 2;
-        }
-        angle = Math.PI * 2 - angle;
-
-        return angle;
     }
     // endregion
 }

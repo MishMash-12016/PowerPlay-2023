@@ -20,10 +20,10 @@ public class grabber {
     // endregion
 
     // region CONSTANTS
-    private static final double middlePosition = 0.73;
-    private static final double inPosition     = 0.92;
+    private static final double middlePosition = 0.68;
+    private static final double inPosition     = 0.87;
     //                                             low -  -  -  -  -  -  - high
-    private static final double[] pilePositions = {0.23, 0.27, 0.31, 0.35, 0.39};
+    private static final double[] pilePositions = {0.2, 0.23, 0.28, 0.32, 0.35};
 
 
     private static final double grabPosition = 0.42;
@@ -31,6 +31,8 @@ public class grabber {
 
     private static final double coneDistanceCatchTrigger = 12;
     private static final double coneInDistance = 5;
+
+    private static final int slowIncrements = 20;
     // endregion
 
     // region INITIALIZATION
@@ -62,6 +64,19 @@ public class grabber {
     public static void grab()        { grabberServo.setPosition(grabPosition      ); }
 
     public static void goToCone(int coneHeight){ setPosition(pilePositions[coneHeight]); }
+    public static void goToConeSlow(int newConeHeight){
+        coneHeight = newConeHeight;
+        asyncGoToConeSlow.start();
+    }
+    private static int coneHeight = 0;
+    private static final Thread asyncGoToConeSlow = new Thread(() -> {
+        for (double i = 0; i <= 1; i += 1.0 / slowIncrements) {
+            setPosition(inPosition + (pilePositions[coneHeight] - inPosition) * i);
+            try {
+                Thread.sleep(5);
+            } catch (InterruptedException e){}
+        }
+    });
     public static void goToMid()            { setPosition(middlePosition); }
     public static void goToIn()             { setPosition(inPosition    ); }
 
@@ -77,6 +92,10 @@ public class grabber {
     public static boolean isGrabbing() {
         return grabberServo.getPosition() == grabPosition;
     }
+    public static boolean isMoving() {
+        return asyncGoToConeSlow.isAlive();
+    }
+
 
     public static double distanceReading(){
         return distanceFromConeSensor.getDistance(DistanceUnit.CM);

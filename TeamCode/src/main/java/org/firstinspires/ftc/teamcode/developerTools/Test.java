@@ -21,12 +21,12 @@ public class Test extends LinearOpMode {
 
         RobotSystem.startAllAutonomousControllers();
         try {
-            RobotSystem.auto.regularAuto.follow(RobotSystem.auto.regularAuto.trajectories.startToScore);
+            RobotSystem.auto.regularAuto.asyncFollow(RobotSystem.auto.regularAuto.trajectories.startToScore);
             puffer.grab();
             puffer.goToMid();
             RobotSystem.await(RobotSystem.auto.regularAuto::isStationary);
             RobotSystem.auto.regularAuto.cycle(5);
-            RobotSystem.auto.regularAuto.follow(RobotSystem.auto.regularAuto.trajectories.scoreToPark3);
+            RobotSystem.auto.regularAuto.asyncFollow(RobotSystem.auto.regularAuto.trajectories.scoreToPark3);
             RobotSystem.await(RobotSystem.auto.regularAuto::isStationary);
         } catch (InterruptedException e){
             telemetry.addLine("early stop");
