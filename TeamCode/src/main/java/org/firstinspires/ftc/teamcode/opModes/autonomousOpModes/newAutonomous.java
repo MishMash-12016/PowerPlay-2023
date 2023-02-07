@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.puffer;
 @Autonomous
 public class newAutonomous extends LinearOpMode {
     @Override
-    public void runOpMode(){
+    public void runOpMode(){/*
         RobotSystem.safeAuto.initializeAll(hardwareMap, telemetry, gamepad1, gamepad2);
 
         waitForStart();
@@ -34,5 +34,5 @@ public class newAutonomous extends LinearOpMode {
         }
 
         while (opModeIsActive() && !RobotSystem.isStopRequested){}
-    }
+    */}
 }

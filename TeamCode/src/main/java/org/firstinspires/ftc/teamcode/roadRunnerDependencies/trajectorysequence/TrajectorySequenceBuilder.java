@@ -231,6 +231,9 @@ public class TrajectorySequenceBuilder {
     public TrajectorySequenceBuilder splineTo(Vector2d endPosition, double endHeading) {
         return addPath(() -> currentTrajectoryBuilder.splineTo(endPosition, endHeading, currentVelConstraint, currentAccelConstraint));
     }
+    public TrajectorySequenceBuilder splineTo(Pose2d endPosition, double endHeading) {
+        return addPath(() -> currentTrajectoryBuilder.splineTo(new Vector2d(endPosition.getX(), endPosition.getY()), endHeading, currentVelConstraint, currentAccelConstraint));
+    }
 
     public TrajectorySequenceBuilder splineTo(
             Vector2d endPosition,
@@ -243,6 +246,9 @@ public class TrajectorySequenceBuilder {
 
     public TrajectorySequenceBuilder splineToConstantHeading(Vector2d endPosition, double endHeading) {
         return addPath(() -> currentTrajectoryBuilder.splineToConstantHeading(endPosition, endHeading, currentVelConstraint, currentAccelConstraint));
+    }
+    public TrajectorySequenceBuilder splineToConstantHeading(Pose2d endPosition, double endHeading) {
+        return addPath(() -> currentTrajectoryBuilder.splineToConstantHeading(new Vector2d(endPosition.getX(), endPosition.getY()), endHeading, currentVelConstraint, currentAccelConstraint));
     }
 
     public TrajectorySequenceBuilder splineToConstantHeading(

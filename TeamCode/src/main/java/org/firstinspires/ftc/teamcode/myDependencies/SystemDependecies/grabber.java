@@ -20,10 +20,10 @@ public class grabber {
     // endregion
 
     // region CONSTANTS
-    private static final double middlePosition = 0.68;
-    private static final double inPosition     = 0.87;
+    private static final double middlePosition = 0.61;
+    private static final double inPosition     = 0.79;
     //                                             low -  -  -  -  -  -  - high
-    private static final double[] pilePositions = {0.21, 0.23, 0.28, 0.32, 0.35};
+    private static final double[] pilePositions = {0.13, 0.14, 0.17, 0.2, 0.24};
 
 
     private static final double grabPosition = 0.42;
@@ -32,7 +32,11 @@ public class grabber {
     private static final double coneDistanceCatchTrigger = 12;
     private static final double coneInDistance = 5;
 
-    private static final int slowIncrements = 20;
+    private static final int slowIncrements = 25;
+    // endregion
+
+    // region VARIABLES
+    public static double offset = 0;
     // endregion
 
     // region INITIALIZATION
@@ -56,6 +60,12 @@ public class grabber {
 
         distanceFromConeSensor = RobotSystem.hardwareMap.get(DistanceSensor.class, "grabberDistanceToConeSensor");
         // endregion
+
+        reset();
+    }
+
+    public static void reset(){
+        offset = 0;
     }
     // endregion
 
@@ -110,8 +120,8 @@ public class grabber {
 
     // region PRIVATE FUNCTIONALITY
     private static void setPosition(double position){
-        rightServo.setPosition(position);
-        leftServo .setPosition(position);
+        rightServo.setPosition(position + offset);
+        leftServo .setPosition(position + offset);
     }
     // endregion
 }

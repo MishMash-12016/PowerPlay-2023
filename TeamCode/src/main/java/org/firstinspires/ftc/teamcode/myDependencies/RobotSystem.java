@@ -1,7 +1,8 @@
 package org.firstinspires.ftc.teamcode.myDependencies;
 
+import android.widget.Button;
+
 import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -16,7 +17,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.*;
-import org.firstinspires.ftc.teamcode.myDependencies.oldFiles.PipeLine;
 import org.firstinspires.ftc.teamcode.roadRunnerDependencies.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.roadRunnerDependencies.trajectorysequence.TrajectorySequence;
 import org.openftc.easyopencv.OpenCvCamera;
@@ -58,6 +58,7 @@ public class RobotSystem {
         RobotSystem.reset();
 
         led.reset();
+        grabber.reset();
         elevator.reset();
         driveTrain.reset();
     }
@@ -97,10 +98,6 @@ public class RobotSystem {
         RobotSystem.cycleController.start();
         driveTrain.controller.start();
         elevator.controller.start();
-    }
-    public static void startAllAutonomousControllers(){
-        elevator.controller.start();
-
     }
 
     public static void terminate(){
@@ -168,7 +165,7 @@ public class RobotSystem {
         }
     }
 
-    public static class buttonController {
+    public static class buttonController1 {
         public static boolean a = true;
         public static boolean firstAPress(){
             if (gamepad1.a){
@@ -279,6 +276,117 @@ public class RobotSystem {
             return false;
         }
     }
+    public static class buttonController2 {
+        public static boolean a = true;
+        public static boolean firstAPress(){
+            if (gamepad2.a){
+                if(a){
+                    a = false;
+                    return true;
+                }
+            } else a = true;
+            return false;
+        }
+
+        public static boolean x = true;
+        public static boolean firstXPress(){
+            if (gamepad2.x){
+                if(x){
+                    x = false;
+                    return true;
+                }
+            } else x = true;
+            return false;
+        }
+
+        public static boolean y = true;
+        public static boolean firstYPress(){
+            if (gamepad2.y){
+                if(y){
+                    y = false;
+                    return true;
+                }
+            } else y = true;
+            return false;
+        }
+
+        public static boolean b = true;
+        public static boolean firstBPress(){
+            if (gamepad2.b){
+                if(b){
+                    b = false;
+                    return true;
+                }
+            } else b = true;
+            return false;
+        }
+
+        public static boolean right_bumperPress = true;
+        public static boolean firstRight_bumperPress(){
+            if (gamepad2.right_bumper){
+                if(right_bumperPress){
+                    right_bumperPress = false;
+                    return true;
+                }
+            } else right_bumperPress = true;
+            return false;
+        }
+
+        public static boolean right_bumperRelease = true;
+        public static boolean firstRight_bumperRelease(){
+            if (!gamepad2.right_bumper){
+                if(right_bumperRelease){
+                    right_bumperRelease = false;
+                    return true;
+                }
+            } else right_bumperRelease = true;
+            return false;
+        }
+
+        public static boolean dpad_up = true;
+        public static boolean firstDpad_up(){
+            if (gamepad2.dpad_up){
+                if(dpad_up){
+                    dpad_up = false;
+                    return true;
+                }
+            } else dpad_up = true;
+            return false;
+        }
+
+        public static boolean dpad_right = true;
+        public static boolean firstDpad_right(){
+            if (gamepad2.dpad_right){
+                if(dpad_right){
+                    dpad_right = false;
+                    return true;
+                }
+            } else dpad_right = true;
+            return false;
+        }
+
+        public static boolean dpad_left = true;
+        public static boolean firstDpad_left(){
+            if (gamepad2.dpad_left){
+                if(dpad_left){
+                    dpad_left = false;
+                    return true;
+                }
+            } else dpad_left = true;
+            return false;
+        }
+
+        public static boolean dpad_down = true;
+        public static boolean firstDpad_down(){
+            if (gamepad2.dpad_down){
+                if(dpad_down){
+                    dpad_down = false;
+                    return true;
+                }
+            } else dpad_down = true;
+            return false;
+        }
+    }
     // endregion
 
     // region DRIVER CONTROLLED FUNCTIONS
@@ -289,47 +397,47 @@ public class RobotSystem {
                 manual.collect();
             }
             else if (!manual.asyncHighCollect.isAlive()) {
-                if (buttonController.firstDpad_up()) {
+                if (buttonController1.firstDpad_up()) {
                     manual.asyncCollect.interrupt();
                     manual.highCollect(4);
                 }
-                if (buttonController.firstDpad_right()) {
+                if (buttonController1.firstDpad_right()) {
                     manual.asyncCollect.interrupt();
                     manual.highCollect(3);
                 }
-                if (buttonController.firstDpad_down()) {
+                if (buttonController1.firstDpad_down()) {
                     manual.asyncCollect.interrupt();
                     manual.highCollect(2);
                 }
-                if (buttonController.firstDpad_left()) {
+                if (buttonController1.firstDpad_left()) {
                     manual.asyncCollect.interrupt();
                     manual.highCollect(1);
                 }
             } else {
-                if (buttonController.firstDpad_up()) {
+                if (buttonController1.firstDpad_up()) {
                     manual.asyncHighCollect.interrupt();
                 }
-                if (buttonController.firstDpad_right()) {
+                if (buttonController1.firstDpad_right()) {
                     manual.asyncHighCollect.interrupt();
                 }
-                if (buttonController.firstDpad_down()) {
+                if (buttonController1.firstDpad_down()) {
                     manual.asyncHighCollect.interrupt();
                 }
-                if (buttonController.firstDpad_left()) {
+                if (buttonController1.firstDpad_left()) {
                     manual.asyncHighCollect.interrupt();
                 }
             }
             if (allowScoring) {
-                if      (buttonController.firstAPress()) { manual.score(elevator.highPosition  ); }
-                else if (buttonController.firstXPress()) { manual.score(elevator.middlePosition); }
-                else if (buttonController.firstYPress()) { manual.score(elevator.lowPosition   ); }
+                if      (buttonController1.firstAPress()) { manual.score(elevator.highPosition  ); }
+                else if (buttonController1.firstXPress()) { manual.score(elevator.middlePosition); }
+                else if (buttonController1.firstYPress()) { manual.score(elevator.lowPosition   ); }
             }
-            else if (buttonController.firstBPress()) { manual.asyncScore.interrupt(); }
+            else if (buttonController1.firstBPress()) { manual.asyncScore.interrupt(); }
 
-            if (buttonController.firstRight_bumperPress()){
+            if (buttonController1.firstRight_bumperPress()){
                 driveTrain.slowMode();
             }
-            if (buttonController.firstRight_bumperRelease() && !manual.asyncCollect.isAlive() && !manual.asyncScore.isAlive()) {
+            if (buttonController1.firstRight_bumperRelease() && !manual.asyncCollect.isAlive() && !manual.asyncScore.isAlive()) {
                 driveTrain.fastMode();
             }
         }
@@ -524,6 +632,43 @@ public class RobotSystem {
     }
     // endregion
 
+    // region OPERATOR CONTROLLED FUNCTIONS
+    private static final Thread operatorController = new Thread(() -> {
+        while (!isStopRequested && !RobotSystem.operatorController.isInterrupted()) {
+            if(buttonController2.firstAPress()){
+                driveTrain.resetFieldOriented();
+            }
+
+            if (buttonController2.firstBPress()){
+                if (grabber.isGrabbing()){
+                    grabber.release();
+                } else {
+                    grabber.grab();
+                }
+            }
+
+            if (buttonController2.firstXPress()){
+                if (puffer.isGrabbing()){
+                    puffer.release();
+                    puffer.goToIn();
+                } else {
+                    puffer.grab();
+                    puffer.goToMid();
+                }
+            }
+
+            if (buttonController2.firstDpad_down()){
+                grabber.offset += 0.01;
+            } else if (buttonController2.firstDpad_up()){
+                grabber.offset -= 0.01;
+
+            } else if (buttonController2.firstDpad_right()){
+                grabber.offset = 0;
+            }
+        }
+    });
+    // endregion
+
     // region AUTONOMOUS FUNCTIONS
     private static abstract class auto {
         // region INITIALIZATION
@@ -561,11 +706,22 @@ public class RobotSystem {
 
             // region INITIALIZE DRIVE
             drive = new SampleMecanumDrive(hardwareMap);
-            drive.setPoseEstimate(positions.start);
             // endregion
-
-            initializeTrajectories();
         }
+
+        public static void startAllAutonomousControllers(Callable<Boolean> opModeIsActive){
+            auto.opModeIsActive = opModeIsActive;
+            elevator.controller.start();
+            safetyListener.start();
+        }
+        private static final Thread safetyListener = new Thread(() -> {
+            try {
+                while (auto.opModeIsActive.call()){}
+            } catch(Exception e){}
+
+            RobotSystem.regularAuto.terminate();
+        });
+        private static Callable<Boolean> opModeIsActive;
 
         public static void terminate(){
             RobotSystem.terminate();
@@ -574,21 +730,16 @@ public class RobotSystem {
         // endregion
 
         // region MOVEMENT
-        private static SampleMecanumDrive drive;
-        abstract static class positions{
-            public static Pose2d start;
-        }
-        abstract static class trajectories{
-            public static TrajectorySequence scoreToPark1;
-            public static TrajectorySequence scoreToPark2;
-            public static TrajectorySequence scoreToPark3;
-        }
+        protected static SampleMecanumDrive drive;
+        protected static final HashMap<String, Pose2d> positions = new HashMap<>();
+        public static final HashMap<String, TrajectorySequence> trajectories = new HashMap<>();
 
-        private static void initializeTrajectories(){}
-
-        public static void follow(TrajectorySequence sequence){
+        public static void follow(TrajectorySequence sequence) throws InterruptedException{
             drive.followTrajectorySequenceAsync(sequence);
-            while (!isStationary() && !isStopRequested){
+            while (!isStationary()){
+                if (isStopRequested) {
+                    throw hardStopRequest;
+                }
                 drive.update();
             }
         }
@@ -602,18 +753,18 @@ public class RobotSystem {
             }
         });
 
-        public static void park() {
+        public static void park() throws InterruptedException{
             switch (detection) {
                 case (1): {
-                    follow(trajectories.scoreToPark1);
+                    follow(trajectories.get("scoreToPark1"));
                     break;
                 }
                 case (2): {
-                    follow(trajectories.scoreToPark2);
+                    follow(trajectories.get("scoreToPark2"));
                     break;
                 }
                 case (3): {
-                    follow(trajectories.scoreToPark3);
+                    follow(trajectories.get("scoreToPark3"));
                     break;
                 }
 
@@ -623,21 +774,6 @@ public class RobotSystem {
         public static boolean isStationary(){
             return !drive.isBusy();
         }
-        // endregion
-
-        // region CYCLE
-        public static void cycle(int cycleAmount) throws InterruptedException{
-            for (int coneHeight = 4; coneHeight > 4 - cycleAmount; coneHeight--) {
-                score(coneHeight);
-                collect();
-            }
-            firstScore();
-        }
-
-        public static void firstScore() throws InterruptedException{}
-        public static void score(int coneHeight) throws InterruptedException{}
-
-        public static void collect() throws InterruptedException{}
         // endregion
 
         // region CAMERA
@@ -657,15 +793,16 @@ public class RobotSystem {
         public static void closeCamera(){
             camera.closeCameraDevice();
         }
-        public static void getLatestDetection(){
+        public static void checkParkingPosition(){
             if(aprilTagDetectionPipeline.getLatestDetections().size() == 1)
             {
                 detection = aprilTagDetectionPipeline.getLatestDetections().get(0).id;
             }
+            closeCamera();
         }
         // endregion
-        HashMap<String, String> capitalCities = new HashMap<String, String>();
     }
+    /*
     public static class safeAuto {
         // region INITIALIZATION
         public static void initializeAll(HardwareMap hardwareMap, Telemetry telemetry, Gamepad gamepad1, Gamepad gamepad2){
@@ -871,25 +1008,115 @@ public class RobotSystem {
         }
         // endregion
     }
-
+    */
     public static class regularAuto extends auto{
-        // region MOVEMENT
-        private static class positions{
-            public static final double startToScoreStartingTangent = Math.toRadians(-40);
-            public static final Pose2d start = new Pose2d(30.7, 61.4, Math.toRadians(-90.0));
-            public static final Pose2d score = new Pose2d(38.0, 5.5, Math.toRadians(-164.0));
-            public static final Pose2d park2 = new Pose2d(36.0, 24.0, Math.toRadians(-90.0));
-            public static final Vector2d park1 = new Vector2d(60, 24.0);
-            public static final Vector2d park3 = new Vector2d(16.0, 24.0);
+        public static void initializeTrajectories(boolean isLeft){
+            if (isLeft) {
+                // region POSITIONS
+                positions.put("park1", new Pose2d(60.0, 36.0, Math.toRadians(0.0)));
+                positions.put("park2", new Pose2d(36.0, 36.0, Math.toRadians(0.0)));
+                positions.put("park3", new Pose2d(12.0, 36.0, Math.toRadians(0.0)));
+                positions.put("score", new Pose2d(36.0, 6.0, Math.toRadians(-160.0)));
+                positions.put("start", new Pose2d(31.0, 63.0, Math.toRadians(-90.0)));
+                positions.put("scoreToPark1_temp1", new Pose2d(60.0, 24.0, Math.toRadians(0.0)));
+                positions.put("scoreToPark3_temp0", new Pose2d(24.0, 12.0, Math.toRadians(0.0)));
+                positions.put("scoreToPark3_temp1", new Pose2d(12.0, 24.0, Math.toRadians(0.0)));
+                positions.put("startToScore_temp0", new Pose2d(36.0, 48.0, Math.toRadians(0.0)));
+                positions.put("startToScore_temp1", new Pose2d(36.0, 24.0, Math.toRadians(0.0)));
+                positions.put("scoreToPark1_temp0", new Pose2d(48.0, 12.0, Math.toRadians(180.0)));
+                positions.put("scoreToPark2_temp0", new Pose2d(36.0, 24.0, Math.toRadians(-90.0)));
+                // endregion
 
-            public static final Pose2d scoreToPark1Temp1 = new Pose2d(48, 12, Math.toRadians(180.0));
+                // region TRAJECTORIES
+                // region SCORE TO PARK1
+                trajectories.put("scoreToPark1", drive.trajectorySequenceBuilder(positions.get("score"))
+                        .setTangent(Math.toRadians(30.0))
+                        .splineToSplineHeading(positions.get("scoreToPark1_temp0"), Math.toRadians(0.0))
+                        .splineTo(positions.get("scoreToPark1_temp1"), Math.toRadians(90.0))
+                        .splineTo(positions.get("park1"), Math.toRadians(90.0))
+                        .build());
+                // endregion
+                // region SCORE TO PARK2
+                trajectories.put("scoreToPark2", drive.trajectorySequenceBuilder(positions.get("score"))
+                        .setTangent(Math.toRadians(90.0))
+                        .splineToSplineHeading(positions.get("scoreToPark2_temp0"), Math.toRadians(90.0))
+                        .splineToConstantHeading(positions.get("park2"), Math.toRadians(90.0))
+                        .build());
+                // endregion
+                // region SCORE TO PARK3
+                trajectories.put("scoreToPark3", drive.trajectorySequenceBuilder(positions.get("score"))
+                        .setTangent(Math.toRadians(120.0))
+                        .splineToSplineHeading(positions.get("scoreToPark3_temp0"), Math.toRadians(180.0))
+                        .splineTo(positions.get("scoreToPark3_temp1"), Math.toRadians(90.0))
+                        .splineTo(positions.get("park3"), Math.toRadians(90.0))
+                        .build());
+                // endregion
+                // region START TO SCORE
+                trajectories.put("startToScore", drive.trajectorySequenceBuilder(positions.get("start"))
+                        .setTangent(Math.toRadians(-40.0))
+                        .splineToConstantHeading(positions.get("startToScore_temp0"), Math.toRadians(-90.0))
+                        .splineToConstantHeading(positions.get("startToScore_temp1"), Math.toRadians(-90.0))
+                        .splineToSplineHeading(positions.get("score"), Math.toRadians(-90.0))
+                        .build());
+                // endregion
+                // endregion
 
-            public static final Pose2d scoreToPark3Temp1 = new Pose2d(24, 16, Math.toRadians(0.0));
+            } else {
 
-            public static final Pose2d startToScoreTemp1 = new Pose2d(36.0, 48.0, Math.toRadians(-90.0));
-            public static final Pose2d startToScoreTemp2 = new Pose2d(36.0, 24.0, Math.toRadians(-90.0));
+                // region POSITIONS
+                positions.put("score", new Pose2d(-36.0, 6.0, Math.toRadians(340.0)));
+                positions.put("park1", new Pose2d(-60.0, 36.0, Math.toRadians(180.0)));
+                positions.put("park2", new Pose2d(-36.0, 36.0, Math.toRadians(180.0)));
+                positions.put("park3", new Pose2d(-12.0, 36.0, Math.toRadians(180.0)));
+                positions.put("start", new Pose2d(-31.0, 63.0, Math.toRadians(270.0)));
+                positions.put("scoreToPark1_temp0", new Pose2d(-48.0, 12.0, Math.toRadians(0.0)));
+                positions.put("scoreToPark1_temp1", new Pose2d(-60.0, 24.0, Math.toRadians(180.0)));
+                positions.put("scoreToPark2_temp0", new Pose2d(-36.0, 24.0, Math.toRadians(270.0)));
+                positions.put("scoreToPark3_temp0", new Pose2d(-24.0, 12.0, Math.toRadians(180.0)));
+                positions.put("scoreToPark3_temp1", new Pose2d(-12.0, 24.0, Math.toRadians(180.0)));
+                positions.put("startToScore_temp0", new Pose2d(-36.0, 48.0, Math.toRadians(180.0)));
+                positions.put("startToScore_temp1", new Pose2d(-36.0, 24.0, Math.toRadians(180.0)));
+                // endregion
+
+                // region TRAJECTORIES
+                // region SCORE TO PARK1
+                trajectories.put("scoreToPark1", drive.trajectorySequenceBuilder(positions.get("score"))
+                        .setTangent(Math.toRadians(150.0))
+                        .splineToSplineHeading(positions.get("scoreToPark1_temp0"), Math.toRadians(180.0))
+                        .splineTo(positions.get("scoreToPark1_temp1"), Math.toRadians(90.0))
+                        .splineTo(positions.get("park1"), Math.toRadians(90.0))
+                        .build());
+                // endregion
+                // region SCORE TO PARK2
+                trajectories.put("scoreToPark2", drive.trajectorySequenceBuilder(positions.get("score"))
+                        .setTangent(Math.toRadians(90.0))
+                        .splineToSplineHeading(positions.get("scoreToPark2_temp0"), Math.toRadians(90.0))
+                        .splineToConstantHeading(positions.get("park2"), Math.toRadians(90.0))
+                        .build());
+                // endregion
+                // region SCORE TO PARK3
+                trajectories.put("scoreToPark3", drive.trajectorySequenceBuilder(positions.get("score"))
+                        .setTangent(Math.toRadians(60.0))
+                        .splineToSplineHeading(positions.get("scoreToPark3_temp0"), Math.toRadians(0.0))
+                        .splineTo(positions.get("scoreToPark3_temp1"), Math.toRadians(90.0))
+                        .splineTo(positions.get("park3"), Math.toRadians(90.0))
+                        .build());
+                // endregion
+                // region START TO SCORE
+                trajectories.put("startToScore", drive.trajectorySequenceBuilder(positions.get("start"))
+                        .setTangent(Math.toRadians(220.0))
+                        .splineToConstantHeading(positions.get("startToScore_temp0"), Math.toRadians(270.0))
+                        .splineToConstantHeading(positions.get("startToScore_temp1"), Math.toRadians(270.0))
+                        .splineToSplineHeading(positions.get("score"), Math.toRadians(270.0))
+                        .build());
+                // endregion
+                // endregion
+
+            }
+
+            drive.setPoseEstimate(positions.get("start"));
         }
-        // endregion
+
 
         // region CYCLE
         public static void cycle(int cycleAmount) throws InterruptedException{
@@ -945,35 +1172,6 @@ public class RobotSystem {
             grabber.release();
             puffer.grab();
             puffer.goToMid();
-        }
-
-        public static boolean isStationary(){
-            return !drive.isBusy();
-        }
-        // endregion
-
-        // region CAMERA
-        // region CAMERA CONSTANTS
-        private static final double fx = 578.272;
-        private static final double fy = 578.272;
-        private static final double cx = 402.145;
-        private static final double cy = 221.506;
-
-        // UNITS ARE METERS
-        private static final double tagsize = 0.04;
-        // endregion
-        private static final AprilTagDetectionPipeline aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
-        private static OpenCvWebcam camera;
-        public  static int detection = 3;
-
-        public static void closeCamera(){
-            camera.closeCameraDevice();
-        }
-        public static void getLatestDetection(){
-            if(aprilTagDetectionPipeline.getLatestDetections().size() == 1)
-            {
-                detection = aprilTagDetectionPipeline.getLatestDetections().get(0).id;
-            }
         }
         // endregion
     }

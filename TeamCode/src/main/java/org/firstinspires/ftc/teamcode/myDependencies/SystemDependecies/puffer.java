@@ -62,6 +62,10 @@ public class puffer {
     public static void autonomousGoToIn(){
         setPosition(autonomousInPosition);
     }
+
+    public static boolean isGrabbing() {
+        return pufferServo.getPosition() == grabPosition;
+    }
     // endregion
 
     // region PRIVATE FUNCTIONALITY

@@ -10,18 +10,22 @@ import org.firstinspires.ftc.teamcode.myDependencies.RobotSystem;
 public class elevator {
     // region MOTORS
     private static DcMotorEx motorRight;
+    private static DcMotorEx motorMiddle;
     private static DcMotorEx motorLeft ;
     // endregion
 
     // region CONSTANTS
-    public static final int highPosition   = 17500;
-    public static final int middlePosition = 11000;
-    public static final int lowPosition    = 4000 ;
+    public static final int highPosition   = 17800;
+    public static final int middlePosition = 11300;
+    public static final int lowPosition    = 4300 ;
     public static final int bottomPosition = 0    ;
 
     private static final double marginOfError = 100;
     private static final double smoothness    = 250;
-    private static final double holdingPower  = 0.3;
+
+    private static final double goingUpPower   = 1;
+    private static final double holdingPower   = 0.3;
+    private static final double goingDownPower = -0.2;
     // endregion
 
     // region SENSOR
@@ -35,8 +39,9 @@ public class elevator {
     // region INITIALIZATION
     public static void initialize() {
         // region MOTORS
-        motorLeft  = (DcMotorEx) RobotSystem.hardwareMap.dcMotor.get("elevatorLeft" );
-        motorRight = (DcMotorEx) RobotSystem.hardwareMap.dcMotor.get("elevatorRight");
+        motorLeft   = (DcMotorEx) RobotSystem.hardwareMap.dcMotor.get("elevatorLeft"  );
+        motorMiddle = (DcMotorEx) RobotSystem.hardwareMap.dcMotor.get("elevatorMiddle");
+        motorRight  = (DcMotorEx) RobotSystem.hardwareMap.dcMotor.get("elevatorRight" );
 
         motorRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -99,8 +104,9 @@ public class elevator {
 
     // region PRIVATE FUNCTIONALITY
     private static void setMotorPower(double motorPower){
-        motorLeft .setPower(motorPower);
-        motorRight.setPower(motorPower);
+        motorLeft  .setPower(motorPower);
+        motorMiddle.setPower(motorPower);
+        motorRight .setPower(motorPower);
     }
 
     private static double calculatePower(double distanceToWantedPosition){
@@ -113,7 +119,7 @@ public class elevator {
         } else if (distanceToWantedPosition > smoothness * 4 + marginOfError){
             return 0;
         } else if (-distanceToWantedPosition > smoothness + marginOfError){
-            return 1;
+            return goingUpPower;
         }
 
         if (distanceToWantedPosition > 0){
@@ -124,9 +130,9 @@ public class elevator {
 
 
         if (distanceToWantedPosition > 0){
-            return ((Math.cos((distanceToWantedPosition) * Math.PI / smoothness / 4) - 1) / 2) * holdingPower + holdingPower;
+            return ((Math.cos((distanceToWantedPosition) * Math.PI / smoothness / 4) - 1) / 2) * (holdingPower - goingDownPower) + holdingPower;
         } else {
-            return ((1 - Math.cos(distanceToWantedPosition * Math.PI / smoothness)) / 2) * (1 - holdingPower) + holdingPower;
+            return ((1 - Math.cos(distanceToWantedPosition * Math.PI / smoothness)) / 2) * (goingUpPower - holdingPower) + holdingPower;
         }
     }
 

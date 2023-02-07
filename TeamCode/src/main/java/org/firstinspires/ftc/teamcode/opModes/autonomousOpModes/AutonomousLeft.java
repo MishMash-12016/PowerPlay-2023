@@ -11,39 +11,22 @@ public class AutonomousLeft extends LinearOpMode {
     @Override
     public void runOpMode(){
         RobotSystem.regularAuto.initializeAll(hardwareMap, telemetry, gamepad1, gamepad2);
+        RobotSystem.regularAuto.initializeTrajectories(true);
 
         waitForStart();
-        RobotSystem.regularAuto.getLatestDetection();
-        RobotSystem.regularAuto.closeCamera();
+        RobotSystem.regularAuto.checkParkingPosition();
 
-        new Thread(() -> {
-            while (opModeIsActive()){}
-            RobotSystem.regularAuto.terminate();
-        }).start();
+        RobotSystem.regularAuto.startAllAutonomousControllers(this::opModeIsActive);
+        puffer.grab();
+        puffer.goToMid();
 
-        RobotSystem.startAllAutonomousControllers();
         try {
-            RobotSystem.regularAuto.follow(RobotSystem.regularAuto.trajectories.startToScore);
-            puffer.grab();
-            puffer.goToMid();
-            RobotSystem.await(RobotSystem.regularAuto::isStationary);
-            RobotSystem.regularAuto.cycle(5);
-
-            switch (RobotSystem.regularAuto.detection){
-                case (1):{
-                    RobotSystem.regularAuto.follow(RobotSystem.regularAuto.trajectories.scoreToPark1);
-                    break;
-                }
-                case (2):{
-                    RobotSystem.regularAuto.follow(RobotSystem.regularAuto.trajectories.scoreToPark2);
-                    break;
-                }
-                case (3):{
-                    RobotSystem.regularAuto.follow(RobotSystem.regularAuto.trajectories.scoreToPark3);
-                    break;
-                }
-            }
-        } catch (InterruptedException e){}
+            RobotSystem.regularAuto.follow(RobotSystem.regularAuto.trajectories.get("startToScore"));
+            //RobotSystem.regularAuto.cycle(5);
+            RobotSystem.regularAuto.park();
+        } catch (InterruptedException e){
+            RobotSystem.regularAuto.terminate();
+        }
 
         while (opModeIsActive() && !RobotSystem.isStopRequested){}
 
