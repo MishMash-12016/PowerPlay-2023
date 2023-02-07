@@ -72,9 +72,8 @@ public class RobotSystem {
         RobotSystem.gamepad2    = gamepad2   ;
 
         // region INITIALIZE IMU
-        imu = RobotSystem.hardwareMap.get(BNO055IMU.class, "imu");
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
 
-        // initializing the imu
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
 
         parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
