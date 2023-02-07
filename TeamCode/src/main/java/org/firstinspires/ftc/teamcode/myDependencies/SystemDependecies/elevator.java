@@ -25,7 +25,7 @@ public class elevator {
 
     private static final double goingUpPower   = 1;
     private static final double holdingPower   = 0.3;
-    private static final double goingDownPower = -0.2;
+    private static final double goingDownPower = -0.4;
     // endregion
 
     // region SENSOR
@@ -136,7 +136,7 @@ public class elevator {
         }
     }
 
-    private static double getCurrentPosition() {
+    public static double getCurrentPosition() {
         return motorLeft.getCurrentPosition();
     }
     // endregion

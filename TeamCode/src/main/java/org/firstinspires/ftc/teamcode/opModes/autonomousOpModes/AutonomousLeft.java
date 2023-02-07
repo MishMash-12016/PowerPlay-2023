@@ -22,7 +22,7 @@ public class AutonomousLeft extends LinearOpMode {
 
         try {
             RobotSystem.regularAuto.follow(RobotSystem.regularAuto.trajectories.get("startToScore"));
-            //RobotSystem.regularAuto.cycle(5);
+            RobotSystem.regularAuto.cycle(5);
             RobotSystem.regularAuto.park();
         } catch (InterruptedException e){
             RobotSystem.regularAuto.terminate();

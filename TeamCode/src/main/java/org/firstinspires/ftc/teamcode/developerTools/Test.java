@@ -19,6 +19,8 @@ public class Test extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()){
+            telemetry.addData("position", elevator.getCurrentPosition());
+            telemetry.update();
             if (gamepad1.a){
                 elevator.wantedPosition = 13000;
             }
