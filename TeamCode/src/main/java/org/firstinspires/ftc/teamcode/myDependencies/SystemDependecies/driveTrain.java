@@ -1,16 +1,18 @@
 package org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.teamcode.myDependencies.RobotSystem;
+import org.firstinspires.ftc.teamcode.roadRunnerDependencies.util.AxisDirection;
+import org.firstinspires.ftc.teamcode.roadRunnerDependencies.util.BNO055IMUUtil;
+
+import java.util.List;
 
 public class driveTrain {
     // region MOTORS
@@ -76,21 +78,30 @@ public class driveTrain {
         turningStrength = 1;
         // endregion
 
-
         // region INITIALIZE IMU
         imu = RobotSystem.hardwareMap.get(BNO055IMU.class, "imu");
-
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-
         parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
-        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        parameters.calibrationDataFile = "BNO055IMUCalibration.json";
-        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
-
         imu.initialize(parameters);
-        imu.startAccelerationIntegration(new Position(), new Velocity(), 10);
+
+        BNO055IMUUtil.remapZAxis(imu, AxisDirection.NEG_X);
         // endregion
     }
+    public static void initializeForAuto(BNO055IMU imu, List<DcMotorEx> motors){
+        // region MOTORS
+        frontLeft  = motors.get(0);
+        backLeft   = motors.get(1);
+        backRight  = motors.get(2);
+        frontRight = motors.get(3);
+
+        // region VARIABLES
+        drivingStrength = 1;
+        turningStrength = 1;
+        // endregion
+
+        driveTrain.imu = imu;
+    }
+
     public static void reset(){
         drivingStrength = 1;
         turningStrength = 1;
@@ -176,7 +187,7 @@ public class driveTrain {
     }
 
     public static boolean atWantedAngle(){
-        return Math.abs(getRobotAngle() - wantedAngle) < marginOfError * 4;
+        return Math.abs(getRobotAngle() - wantedAngle) % (Math.PI * 2) < marginOfError * 5;
     }
     // endregion
 

@@ -24,7 +24,7 @@ public class AutonomousRight extends LinearOpMode {
             RobotSystem.regularAuto.follow(RobotSystem.regularAuto.trajectories.get("startToScore"));
             RobotSystem.regularAuto.cycle(5);
             RobotSystem.regularAuto.park();
-        } catch (InterruptedException e){
+        } catch (Exception e){
             RobotSystem.regularAuto.terminate();
         }
 

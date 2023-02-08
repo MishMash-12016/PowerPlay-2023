@@ -1,12 +1,18 @@
 package org.firstinspires.ftc.teamcode.opModes.autonomousOpModes;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
+import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.teamcode.R;
 import org.firstinspires.ftc.teamcode.myDependencies.RobotSystem;
 import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.driveTrain;
-import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.puffer;
+import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.puffer;import org.firstinspires.ftc.robotcore.external.navigation.Position;
+
 
 @Autonomous
 public class AutonomousLeft extends LinearOpMode {
@@ -24,12 +30,12 @@ public class AutonomousLeft extends LinearOpMode {
 
         try {
             RobotSystem.regularAuto.follow(RobotSystem.regularAuto.trajectories.get("startToScore"));
-//            RobotSystem.regularAuto.keepAngle(-RobotSystem.regularAuto.positions.get("score").getHeading() + Math.toRadians(90));
-//            RobotSystem.await(driveTrain::atWantedAngle);
-            RobotSystem.regularAuto.cycle(5);
-//            driveTrain.angleHolder.interrupt();
+            RobotSystem.regularAuto.keepAngle(-RobotSystem.regularAuto.positions.get("score").getHeading() - Math.toRadians(90));
+            RobotSystem.await(driveTrain::atWantedAngle);
+            RobotSystem.regularAuto.cycle(1);
+            driveTrain.angleHolder.interrupt();
             RobotSystem.regularAuto.park();
-        } catch (InterruptedException e){
+        } catch (Exception e){
             RobotSystem.regularAuto.terminate();
         }
 

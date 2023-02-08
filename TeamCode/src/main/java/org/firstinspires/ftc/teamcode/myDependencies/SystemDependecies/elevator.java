@@ -21,11 +21,11 @@ public class elevator {
     public static final int bottomPosition = 0    ;
 
     private static final double marginOfError = 100;
-    private static final double smoothness    = 250;
+    private static final double smoothness    = 800;
 
     private static final double goingUpPower   = 1;
     private static final double holdingPower   = 0.3;
-    private static final double goingDownPower = -0.6;
+    private static final double goingDownPower = -0.2;
     // endregion
 
     // region SENSOR
@@ -76,16 +76,20 @@ public class elevator {
     });
 
     public static void setWantedPosition(int newWantedPosition){
-        wantedPosition = newWantedPosition;
-
-        if (wantedPosition == elevator.bottomPosition){
-            if (!RobotSystem.manual.asyncCollect.isAlive()){
+        if (newWantedPosition == elevator.bottomPosition){
+            if (!RobotSystem.manual.asyncCollect.isAlive() && !RobotSystem.manual.asyncHighCollect.isAlive()){
                 driveTrain.fastMode();
             }
             RobotSystem.manual.asyncScore.interrupt();
         } else {
             driveTrain.slowMode();
+            if (wantedPosition != elevator.bottomPosition) {
+                puffer.grab();
+                puffer.goToMid();
+            }
         }
+
+        wantedPosition = newWantedPosition;
     }
 
     public static boolean isUp(){

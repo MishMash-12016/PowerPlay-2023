@@ -20,17 +20,17 @@ public class grabber {
     // endregion
 
     // region CONSTANTS
-    private static final double middlePosition = 0.62;
-    private static final double inPosition     = 0.8;
+    private static final double middlePosition = 0.67;
+    private static final double inPosition     = 0.85;
     //                                             low -  -  -  -  -  -  - high
-    private static final double[] pilePositions = {0.145, 0.155, 0.18, 0.21, 0.25};
+    private static final double[] pilePositions = {0.195, 0.205, 0.23, 0.26, 0.3};
 
 
     private static final double grabPosition = 0.42;
     private static final double releasePosition = 0.18;
 
     private static final double coneDistanceCatchTrigger = 12;
-    private static final double coneInDistance = 5;
+    private static final double coneInDistance = 8;
 
     private static final int slowIncrements = 25;
     // endregion

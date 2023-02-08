@@ -1,21 +1,12 @@
 package org.firstinspires.ftc.teamcode.myDependencies;
 
-import android.widget.Button;
-
 import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.*;
 import org.firstinspires.ftc.teamcode.roadRunnerDependencies.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.roadRunnerDependencies.trajectorysequence.TrajectorySequence;
@@ -57,7 +48,6 @@ public class RobotSystem {
     public static void resetAll(){
         RobotSystem.reset();
 
-        led.reset();
         grabber.reset();
         elevator.reset();
         driveTrain.reset();
@@ -110,13 +100,13 @@ public class RobotSystem {
                 if (isStopRequested){
                     throw hardStopRequest;
                 }
+                if (Thread.interrupted()){
+                    throw softStopRequest;
+                }
                 Thread.sleep(20);
             }
         }catch (Exception e){
             throw softStopRequest;
-        }
-        if (isStopRequested) {
-            throw hardStopRequest;
         }
     }
     public static void await(Callable<Boolean> requirement, int maxWaitingTime) throws InterruptedException{
@@ -126,13 +116,13 @@ public class RobotSystem {
                 if (isStopRequested){
                     throw hardStopRequest;
                 }
+                if (Thread.interrupted()){
+                    throw softStopRequest;
+                }
                 Thread.sleep(20);
             }
         }catch (Exception e){
             throw softStopRequest;
-        }
-        if (isStopRequested) {
-            throw hardStopRequest;
         }
     }
 
@@ -433,21 +423,20 @@ public class RobotSystem {
 
         public static final Thread asyncHighCollect = new Thread(() -> {
             try {
+                if (!elevator.isUp()){
+                    puffer.goToIn();
+                    puffer.release();
+                }
                 driveTrain.slowMode();
                 grabber.goToConeSlow(currentConeHeight);
                 grabber.release();
 
                 await(() -> grabber.coneIsInRange() && !grabber.isMoving());
-                if(manual.asyncCollect.isInterrupted()){
-                    throw softStopRequest;
-                }
+
                 if (grabber.coneIsInRange()) {
                     grabber.grab();
 
-                    await(grabber::hasCone);
-                    if(manual.asyncCollect.isInterrupted()){
-                        throw softStopRequest;
-                    }
+                    await(grabber::hasCone, 600);
                     if (!manual.asyncScore.isAlive()) {
                         driveTrain.fastMode();
                     }
@@ -459,10 +448,8 @@ public class RobotSystem {
 
                     await(() -> !grabber.isOut());
 
-                    if (grabber.hasCone()) {
-                        puffer.grab();
-                        puffer.goToMid();
-                    }
+                    puffer.grab();
+                    puffer.goToMid();
                     grabber.release();
 
                 } else {
@@ -484,6 +471,10 @@ public class RobotSystem {
 
         public static final Thread asyncCollect = new Thread(() -> {
             try {
+                if (!elevator.isUp()){
+                    puffer.goToIn();
+                    puffer.release();
+                }
                 driveTrain.slowMode();
                 grabber.goToCone(0);
                 grabber.release();
@@ -521,22 +512,17 @@ public class RobotSystem {
 
                 await(() -> !arm.isOut() && !elevator.isUp() && elevator.wantedPosition == elevator.bottomPosition);
 
-                if (grabber.hasCone()) {
-                    allowScoring = false;
-                    manual.asyncScore.interrupt();
+                allowScoring = false;
+                manual.asyncScore.interrupt();
 
-                    grabber.goToIn();
+                grabber.goToIn();
 
-                    await(() -> !grabber.isOut(), 900);
+                await(() -> !grabber.isOut(), 900);
 
-                    grabber.release();
-                    puffer.grab();
-                    puffer.goToMid();
+                grabber.release();
+                puffer.grab();
+                puffer.goToMid();
 
-                } else {
-                    grabber.goToIn();
-                    grabber.release();
-                }
 
             }catch (Exception e){
                 if (e == softStopRequest){
@@ -651,7 +637,7 @@ public class RobotSystem {
             puffer.initialize();
             grabber.initialize();
             elevator.initialize();
-            driveTrain.initialize();
+            driveTrain.initializeForAuto(drive.imu, drive.motors);
         }
 
         public static void initialize(){
@@ -689,9 +675,6 @@ public class RobotSystem {
         private static final Thread safetyListener = new Thread(() -> {
             try {
                 while (auto.opModeIsActive.call()){
-                    telemetry.addData("position", driveTrain.getRobotAngle());
-                    telemetry.addData("wantedPosition", driveTrain.wantedAngle);
-                    telemetry.update();
                 }
             } catch(Exception e){}
 
@@ -792,7 +775,6 @@ public class RobotSystem {
                 positions.put("park1", new Pose2d(60.0, 24.0, Math.toRadians(0.0)));
                 positions.put("park2", new Pose2d(36.0, 24.0, Math.toRadians(0.0)));
                 positions.put("park3", new Pose2d(12.0, 24.0, Math.toRadians(0.0)));
-                positions.put("score", new Pose2d(24.0, 12.0, Math.toRadians(0.0)));
                 positions.put("score", new Pose2d(24.0, 12.0, Math.toRadians(-90.0)));
                 positions.put("start", new Pose2d(30.7, 61.4, Math.toRadians(-90.0)));
                 positions.put("collect", new Pose2d(36.0, 12.0, Math.toRadians(180.0)));
@@ -856,7 +838,6 @@ public class RobotSystem {
                 positions.put("park2", new Pose2d(-36.0, 24.0, Math.toRadians(180.0)));
                 positions.put("park1", new Pose2d(-12.0, 24.0, Math.toRadians(180.0)));
                 positions.put("start", new Pose2d(-30.7, 61.4, Math.toRadians(270.0)));
-                positions.put("score", new Pose2d(-24.0, 12.0, Math.toRadians(180.0)));
                 positions.put("scoreToPark3_temp0", new Pose2d(-48.0, 12.0, Math.toRadians(0.0)));
                 positions.put("scoreToPark2_temp0", new Pose2d(-34.0, 14.0, Math.toRadians(315.0)));
                 positions.put("scoreToPark1_temp0", new Pose2d(-14.0, 14.0, Math.toRadians(225.0)));
@@ -963,7 +944,7 @@ public class RobotSystem {
                 positions.put("park1", new Pose2d(60.0, 36.0, Math.toRadians(0.0)));
                 positions.put("park2", new Pose2d(36.0, 36.0, Math.toRadians(0.0)));
                 positions.put("park3", new Pose2d(12.0, 36.0, Math.toRadians(0.0)));
-                positions.put("score", new Pose2d(36.0, 6.0, Math.toRadians(-160.0)));
+                positions.put("score", new Pose2d(37.0, 5, Math.toRadians(-160.0)));
                 positions.put("start", new Pose2d(31.0, 63.0, Math.toRadians(-90.0)));
                 positions.put("scoreToPark1_temp1", new Pose2d(60.0, 24.0, Math.toRadians(0.0)));
                 positions.put("scoreToPark3_temp0", new Pose2d(24.0, 12.0, Math.toRadians(0.0)));
@@ -1062,6 +1043,10 @@ public class RobotSystem {
             }
 
             drive.setPoseEstimate(positions.get("start"));
+            trajectories.put("temp", drive.trajectorySequenceBuilder(positions.get("start"))
+                    .setTangent(Math.toRadians(0.0))
+                    .splineToConstantHeading(new Pose2d(36, 36, Math.toRadians(-90)), Math.toRadians(-90.0))
+                    .build());
         }
 
         // region CYCLE
