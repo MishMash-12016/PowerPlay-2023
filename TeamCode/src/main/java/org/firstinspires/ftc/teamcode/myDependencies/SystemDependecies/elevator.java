@@ -25,7 +25,7 @@ public class elevator {
 
     private static final double goingUpPower   = 1;
     private static final double holdingPower   = 0.3;
-    private static final double goingDownPower = -0.4;
+    private static final double goingDownPower = -0.6;
     // endregion
 
     // region SENSOR
@@ -92,7 +92,7 @@ public class elevator {
         return isUpSensor.getState();
     }
     public static boolean almostReachedWantedPosition(){
-        return 2000 > Math.abs(wantedPosition - getCurrentPosition());
+        return 6000 > Math.abs(wantedPosition - getCurrentPosition());
     }
 
     public static String deBug(){
@@ -117,7 +117,7 @@ public class elevator {
         if (Math.abs(distanceToWantedPosition) < marginOfError){
             return holdingPower;
         } else if (distanceToWantedPosition > smoothness * 4 + marginOfError){
-            return 0;
+            return goingDownPower;
         } else if (-distanceToWantedPosition > smoothness + marginOfError){
             return goingUpPower;
         }

@@ -70,20 +70,6 @@ public class RobotSystem {
         RobotSystem.telemetry   = telemetry  ;
         RobotSystem.gamepad1    = gamepad1   ;
         RobotSystem.gamepad2    = gamepad2   ;
-
-        // region INITIALIZE IMU
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
-
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-
-        parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
-        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        parameters.calibrationDataFile = "BNO055IMUCalibration.json";
-        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
-
-        imu.initialize(parameters);
-        imu.startAccelerationIntegration(new Position(), new Velocity(), 10);
-        // endregion
     }
     public static void reset(){
         isStopRequested = false;
@@ -104,20 +90,6 @@ public class RobotSystem {
         isStopRequested = true;
 
         telemetry.update();
-    }
-
-    private static BNO055IMU imu;
-    public static double getRobotAngle() {
-        // get the angle from the imu
-        double angle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle;
-
-        // normalize the angle
-        if (angle < 0) {
-            angle += Math.PI * 2;
-        }
-        angle = Math.PI * 2 - angle;
-
-        return angle;
     }
     // endregion
 
@@ -679,6 +651,7 @@ public class RobotSystem {
             puffer.initialize();
             grabber.initialize();
             elevator.initialize();
+            driveTrain.initialize();
         }
 
         public static void initialize(){
@@ -715,7 +688,11 @@ public class RobotSystem {
         }
         private static final Thread safetyListener = new Thread(() -> {
             try {
-                while (auto.opModeIsActive.call()){}
+                while (auto.opModeIsActive.call()){
+                    telemetry.addData("position", driveTrain.getRobotAngle());
+                    telemetry.addData("wantedPosition", driveTrain.wantedAngle);
+                    telemetry.update();
+                }
             } catch(Exception e){}
 
             terminate();
@@ -730,8 +707,13 @@ public class RobotSystem {
 
         // region MOVEMENT
         protected static SampleMecanumDrive drive;
-        protected static final HashMap<String, Pose2d> positions = new HashMap<>();
+        public static final HashMap<String, Pose2d> positions = new HashMap<>();
         public static final HashMap<String, TrajectorySequence> trajectories = new HashMap<>();
+
+        public static void keepAngle(double angle) {
+            driveTrain.wantedAngle = angle;
+            driveTrain.angleHolder.start();
+        }
 
         public static void follow(TrajectorySequence sequence) throws InterruptedException{
             drive.followTrajectorySequenceAsync(sequence);

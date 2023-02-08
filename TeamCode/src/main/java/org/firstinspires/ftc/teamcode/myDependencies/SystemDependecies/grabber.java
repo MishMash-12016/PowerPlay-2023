@@ -20,10 +20,10 @@ public class grabber {
     // endregion
 
     // region CONSTANTS
-    private static final double middlePosition = 0.61;
-    private static final double inPosition     = 0.79;
+    private static final double middlePosition = 0.62;
+    private static final double inPosition     = 0.8;
     //                                             low -  -  -  -  -  -  - high
-    private static final double[] pilePositions = {0.13, 0.14, 0.17, 0.2, 0.24};
+    private static final double[] pilePositions = {0.145, 0.155, 0.18, 0.21, 0.25};
 
 
     private static final double grabPosition = 0.42;

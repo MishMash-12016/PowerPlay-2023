@@ -11,25 +11,20 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.R;
 import org.firstinspires.ftc.teamcode.myDependencies.RobotSystem;
+import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.driveTrain;
 import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.grabber;
 
 @TeleOp
 public class Test2 extends LinearOpMode {
     @Override
     public void runOpMode() {
-
-        RobotSystem.initialize(hardwareMap, telemetry, gamepad1, gamepad2);
-        grabber.initialize();
-
         waitForStart();
         if (isStopRequested()) return;
         resetRuntime();
 
-        while (opModeIsActive()){
-            telemetry.addData("grabber", grabber.deBug());
+        while (opModeIsActive()) {
+            telemetry.addData("b", gamepad1.b);
             telemetry.update();
         }
-
-        RobotSystem.terminate();
     }
 }
