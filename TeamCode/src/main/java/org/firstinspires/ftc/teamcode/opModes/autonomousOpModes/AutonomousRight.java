@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.myDependencies.RobotSystem;
 import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.puffer;
 
-@Autonomous
+@Autonomous(group = "competition op modes")
 public class AutonomousRight extends LinearOpMode {
     @Override
     public void runOpMode(){

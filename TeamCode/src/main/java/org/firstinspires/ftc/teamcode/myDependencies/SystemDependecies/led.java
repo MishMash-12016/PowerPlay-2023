@@ -1,20 +1,19 @@
 package org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies;
 
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
-import com.qualcomm.robotcore.hardware.LED;
-
 import org.firstinspires.ftc.teamcode.myDependencies.RobotSystem;
-import org.opencv.core.Scalar;
 
 public class led {
     private static RevBlinkinLedDriver l;
-    public static void reset(){
+    public static void initialize(){
+        l = RobotSystem.hardwareMap.get(RevBlinkinLedDriver.class, "leds");
+        l.setPattern(RevBlinkinLedDriver.BlinkinPattern.ORANGE);
+    }
 
+    public static void setGreen(){
+        l.setPattern(RevBlinkinLedDriver.BlinkinPattern.GREEN);
     }
-    public static void setColor(){
-        l.setPattern(RevBlinkinLedDriver.BlinkinPattern.WHITE);
-    }
-    public static class Color {
-        public static final Scalar example = new Scalar(0, 0, 0);
+    public static void setRed(){
+        l.setPattern(RevBlinkinLedDriver.BlinkinPattern.RED);
     }
 }

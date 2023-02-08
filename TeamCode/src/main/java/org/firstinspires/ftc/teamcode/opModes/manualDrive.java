@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.myDependencies.RobotSystem;
 
-@TeleOp
+@TeleOp(group = "competition op modes")
 public class manualDrive extends LinearOpMode{
     @Override
     public void runOpMode() {

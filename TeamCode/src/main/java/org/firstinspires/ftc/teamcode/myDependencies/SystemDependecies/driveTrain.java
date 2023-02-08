@@ -170,6 +170,7 @@ public class driveTrain {
         while(!RobotSystem.isStopRequested && !driveTrain.angleHolder.isInterrupted()) {
             turn(calculateAngleKeepingPower());
         }
+        setPower(0, 0, 0, 0);
     });
 
     public static void slowMode(){

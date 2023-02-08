@@ -82,9 +82,9 @@ public class elevator {
             }
             RobotSystem.manual.asyncScore.interrupt();
         } else {
+            puffer.grab();
             driveTrain.slowMode();
             if (wantedPosition != elevator.bottomPosition) {
-                puffer.grab();
                 puffer.goToMid();
             }
         }

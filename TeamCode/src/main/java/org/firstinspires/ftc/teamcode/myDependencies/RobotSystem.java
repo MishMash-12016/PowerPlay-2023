@@ -39,6 +39,7 @@ public class RobotSystem {
     public static void initializeAll(HardwareMap hardwareMap, Telemetry telemetry, Gamepad gamepad1, Gamepad gamepad2){
         RobotSystem.initialize(hardwareMap, telemetry, gamepad1, gamepad2);
 
+        led.initialize();
         arm.initialize();
         puffer.initialize();
         grabber.initialize();
@@ -546,19 +547,15 @@ public class RobotSystem {
                 puffer.goToOut();
 
                 sleep(275);
-                await(() -> (gamepad1.right_trigger > 0 || RobotSystem.manual.asyncScore.isInterrupted()));
-
-                if (manual.asyncScore.isInterrupted()){
-                    throw softStopRequest;
-                }
+                await(() -> gamepad1.right_trigger > 0);
 
                 puffer.release();
 
-                await(() -> gamepad1.right_trigger == 0 || RobotSystem.manual.asyncScore.isInterrupted());
+                await(() -> gamepad1.right_trigger == 0);
 
                 throw softStopRequest;
-            }catch (InterruptedException e1){
-                if (e1.equals(softStopRequest)){
+            }catch (Exception e1){
+                if (!e1.equals(hardStopRequest)){
                     try {
                         puffer.goToIn();
 
@@ -581,9 +578,6 @@ public class RobotSystem {
                         telemetry.update();
                     }
                 }
-            } catch (Exception e){
-                telemetry.addData("stopped manual score completely", e);
-                telemetry.update();
             }
         });
     }

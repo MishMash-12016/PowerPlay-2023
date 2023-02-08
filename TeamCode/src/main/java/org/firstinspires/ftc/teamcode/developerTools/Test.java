@@ -4,6 +4,7 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
@@ -14,28 +15,20 @@ import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.driveTrai
 import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.puffer;import org.firstinspires.ftc.robotcore.external.navigation.Position;
 
 
-@Autonomous
+//@Deprecated
+@Autonomous(group = "developer tools")
 public class Test extends LinearOpMode {
     @Override
     public void runOpMode(){
-        RobotSystem.regularAuto.initializeAll(hardwareMap, telemetry, gamepad1, gamepad2);
-        RobotSystem.regularAuto.initializeTrajectories(true);
+        DcMotor m = hardwareMap.dcMotor.get("elevatorMiddle");
 
         waitForStart();
-        RobotSystem.regularAuto.checkParkingPosition();
 
-        RobotSystem.regularAuto.startAllAutonomousControllers(this::opModeIsActive);
-        puffer.grab();
-        puffer.goToMid();
+        m.setPower(0.5);
+        while (opModeIsActive()){
 
-        try {
-            RobotSystem.regularAuto.follow(RobotSystem.regularAuto.trajectories.get("temp"));
-        } catch (InterruptedException e){
-            RobotSystem.regularAuto.terminate();
         }
 
-        while (opModeIsActive() && !RobotSystem.isStopRequested){}
-
-        RobotSystem.regularAuto.terminate();
+        m.setPower(0);
     }
 }

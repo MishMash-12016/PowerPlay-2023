@@ -14,7 +14,8 @@ import org.firstinspires.ftc.teamcode.myDependencies.RobotSystem;
 import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.driveTrain;
 import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.grabber;
 
-@TeleOp
+@Deprecated
+@TeleOp(group = "developer tools")
 public class Test2 extends LinearOpMode {
     @Override
     public void runOpMode() {

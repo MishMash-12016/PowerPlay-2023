@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.myDependencies.RobotSystem;
 
-@TeleOp
+@TeleOp(group = "developer tools")
 public class SensorTester extends LinearOpMode {
 
     @Override

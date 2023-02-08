@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.driveTrai
 import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.puffer;import org.firstinspires.ftc.robotcore.external.navigation.Position;
 
 
-@Autonomous
+@Autonomous(group = "competition op modes")
 public class AutonomousLeft extends LinearOpMode {
     @Override
     public void runOpMode(){
@@ -32,7 +32,7 @@ public class AutonomousLeft extends LinearOpMode {
             RobotSystem.regularAuto.follow(RobotSystem.regularAuto.trajectories.get("startToScore"));
             RobotSystem.regularAuto.keepAngle(-RobotSystem.regularAuto.positions.get("score").getHeading() - Math.toRadians(90));
             RobotSystem.await(driveTrain::atWantedAngle);
-            RobotSystem.regularAuto.cycle(1);
+            RobotSystem.regularAuto.cycle(5);
             driveTrain.angleHolder.interrupt();
             RobotSystem.regularAuto.park();
         } catch (Exception e){
