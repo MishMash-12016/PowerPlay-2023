@@ -10,10 +10,19 @@ public class led {
         l.setPattern(RevBlinkinLedDriver.BlinkinPattern.ORANGE);
     }
 
-    public static void setGreen(){
+    public static void green(){
         l.setPattern(RevBlinkinLedDriver.BlinkinPattern.GREEN);
     }
-    public static void setRed(){
+    public static void red(){
         l.setPattern(RevBlinkinLedDriver.BlinkinPattern.RED);
+    }
+    public static void white(){
+        l.setPattern(RevBlinkinLedDriver.BlinkinPattern.WHITE);
+    }
+    public static void blue(){
+        l.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLUE);
+    }
+    public static void black(){
+        l.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
     }
 }

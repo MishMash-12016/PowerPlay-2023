@@ -132,7 +132,27 @@ public class AprilTagDetectionPipeline extends OpenCvPipeline
             draw3dCubeMarker(grey, tagsizeX, tagsizeX, tagsizeY, 5, pose.rvec, pose.tvec, cameraMatrix);
         }
 
-        return grey;
+        if(detections.size() == 1)
+        {
+            switch (detections.get(0).id) {
+                case (1): {
+                    led.white();
+                    break;
+                }
+                case (2): {
+                    led.blue();
+                    break;
+                }
+                case (3): {
+                    led.red();
+                    break;
+                }
+            }
+        } else {
+            led.black();
+        }
+
+        return input;
     }
 
     public void setDecimation(float decimation)

@@ -40,11 +40,11 @@ public class puffer {
 
     // region FUNCTIONALITY
     public static void grab(){
-        led.setGreen();
+        led.green();
         pufferServo.setPosition(grabPosition);
     }
     public static void release(){
-        led.setRed();
+        led.red();
         pufferServo.setPosition(releasePosition);
     }
 
