@@ -4,10 +4,12 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.teamcode.R;
 import org.firstinspires.ftc.teamcode.myDependencies.RobotSystem;
 import org.firstinspires.ftc.teamcode.roadRunnerDependencies.util.AxisDirection;
 import org.firstinspires.ftc.teamcode.roadRunnerDependencies.util.BNO055IMUUtil;
@@ -30,17 +32,12 @@ public class driveTrain {
 
     private static final double slowDrivingStrength = 0.4;
     private static final double slowTurningStrength = 0.2;
-
-    private static final double marginOfError = 0.015;
-    private static final double smoothness = 0.005;
-    private static final double maxTurning = 0.3;
     // endregion
 
     // region VARIABLES
     private static double drivingStrength;
     private static double turningStrength;
     public  static double startingAngle;
-    public  static double wantedAngle;
 
 
     private static double x;
@@ -106,7 +103,6 @@ public class driveTrain {
         drivingStrength = 1;
         turningStrength = 1;
         startingAngle = 0;
-        wantedAngle = 0;
     }
     // endregion
 
@@ -166,12 +162,21 @@ public class driveTrain {
             // endregion
         }
     });
-    public static Thread angleHolder = new Thread(() -> {
-        while(!RobotSystem.isStopRequested && !driveTrain.angleHolder.isInterrupted()) {
-            turn(calculateAngleKeepingPower());
+    private static final ElapsedTime timePassed = new ElapsedTime();
+
+    public static void goToAngle(double wantedAngle, double timeLimit){
+        wantedAngle *= -1;
+        wantedAngle -= Math.toRadians(90);
+
+        timePassed.reset();
+        while ((wantedAngle - getRobotAngle() + Math.PI * 10) % (Math.PI * 2) > 0.05 && !RobotSystem.isStopRequested && timeLimit > timePassed.milliseconds()){
+            if ((wantedAngle - getRobotAngle() + Math.PI * 10) % (Math.PI * 2) > -Math.PI && (wantedAngle - getRobotAngle() + Math.PI * 10) % (Math.PI * 2) < Math.PI)
+                turn(-0.3);
+            else
+                turn(0.3);
         }
-        setPower(0, 0, 0, 0);
-    });
+        turn(0);
+    }
 
     public static void slowMode(){
         drivingStrength = slowDrivingStrength;
@@ -184,56 +189,17 @@ public class driveTrain {
 
     public static void resetFieldOriented(){
         startingAngle = 0;
-        startingAngle = getRobotAngle();
-    }
-
-    public static boolean atWantedAngle(){
-        return Math.abs(getRobotAngle() - wantedAngle) % (Math.PI * 2) < marginOfError * 5;
+        startingAngle = -getRobotAngle();
     }
     // endregion
 
     // region PRIVATE FUNCTIONALITY
-    private static void setPower(double frontRightPower, double frontLeftPower, double backRightPower, double backLeftPower){
+    public static void setPower(double frontRightPower, double frontLeftPower, double backRightPower, double backLeftPower){
         frontRight.setPower(frontRightPower);
         frontLeft .setPower(frontLeftPower );
         backRight .setPower(backRightPower );
         backLeft  .setPower(backLeftPower  );
     }
-    private static void turn(double p){
-        setPower(-p, p, -p, p);
-    }
-
-    public static double calculateAngleKeepingPower(){
-        double reorientedAngle = (getRobotAngle() - wantedAngle) / Math.PI;
-
-        if (reorientedAngle > 1){
-            reorientedAngle -= 2;
-        } else if (reorientedAngle < -1){
-            reorientedAngle += 2;
-        }
-
-        if (Math.abs(reorientedAngle) < marginOfError){
-            return 0;
-        } else if (reorientedAngle > smoothness + marginOfError){
-            return -maxTurning;
-        } else if (-reorientedAngle > smoothness + marginOfError){
-            return maxTurning;
-        }
-
-        if (reorientedAngle > 0){
-            reorientedAngle -= marginOfError;
-        } else {
-            reorientedAngle += marginOfError;
-        }
-
-
-        if (reorientedAngle > 0){
-            return -((1 - Math.cos(reorientedAngle * Math.PI / smoothness)) / 2) * maxTurning;
-        } else {
-            return ((1 - Math.cos(reorientedAngle * Math.PI / smoothness)) / 2) * maxTurning;
-        }
-    }
-
 
     private static BNO055IMU imu;
     public static double getRobotAngle() {
@@ -247,6 +213,13 @@ public class driveTrain {
         angle = Math.PI * 2 - angle;
 
         return angle + driveTrain.startingAngle;
+    }
+
+    public static void turn(double p){
+        frontRight.setPower(p);
+        frontLeft .setPower(-p);
+        backRight .setPower(p);
+        backLeft  .setPower(-p);
     }
     // endregion
 }

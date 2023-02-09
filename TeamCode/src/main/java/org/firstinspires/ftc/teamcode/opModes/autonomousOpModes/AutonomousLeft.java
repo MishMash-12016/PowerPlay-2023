@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.R;
 import org.firstinspires.ftc.teamcode.myDependencies.RobotSystem;
 import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.driveTrain;
 import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.puffer;import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.opencv.core.Mat;
 
 
 @Autonomous(group = "competition op modes")
@@ -30,10 +31,7 @@ public class AutonomousLeft extends LinearOpMode {
 
         try {
             RobotSystem.regularAuto.follow(RobotSystem.regularAuto.trajectories.get("startToScore"));
-            RobotSystem.regularAuto.keepAngle(-RobotSystem.regularAuto.positions.get("score").getHeading() - Math.toRadians(90));
-            RobotSystem.await(driveTrain::atWantedAngle);
             RobotSystem.regularAuto.cycle(5);
-            driveTrain.angleHolder.interrupt();
             RobotSystem.regularAuto.park();
         } catch (Exception e){
             RobotSystem.regularAuto.terminate();

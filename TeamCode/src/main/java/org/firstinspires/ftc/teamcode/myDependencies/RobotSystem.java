@@ -10,6 +10,7 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.*;
 import org.firstinspires.ftc.teamcode.roadRunnerDependencies.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.roadRunnerDependencies.trajectorysequence.TrajectorySequence;
+import org.opencv.core.Mat;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
@@ -71,6 +72,7 @@ public class RobotSystem {
 
     // region SYSTEM FUNCTIONALITY
     public static void startAllTeleOpControllers(){
+        RobotSystem.operatorController.start();
         RobotSystem.cycleController.start();
         driveTrain.controller.start();
         elevator.controller.start();
@@ -389,12 +391,13 @@ public class RobotSystem {
                     manual.asyncHighCollect.interrupt();
                 }
             }
+
             if (allowScoring) {
                 if      (buttonController1.firstAPress()) { manual.score(elevator.highPosition  ); }
                 else if (buttonController1.firstXPress()) { manual.score(elevator.middlePosition); }
                 else if (buttonController1.firstYPress()) { manual.score(elevator.lowPosition   ); }
             }
-            else if (buttonController1.firstBPress()) { manual.asyncScore.interrupt(); }
+            if (buttonController1.firstBPress()) { manual.asyncScore.interrupt(); }
 
             if (buttonController1.firstRight_bumperPress()){
                 driveTrain.slowMode();
@@ -489,7 +492,7 @@ public class RobotSystem {
                             grabber.grab();
                         }
                     } else {
-                        if (grabber.isGrabbing()) {
+                        if (grabber.isGrabbing() && !gamepad2.b) {
                             grabber.release();
                         }
                     }
@@ -608,10 +611,20 @@ public class RobotSystem {
                 }
             }
 
+            if (buttonController2.firstYPress()){
+                if (puffer.isGrabbing()){
+                    puffer.release();
+                    puffer.goToIn();
+                } else {
+                    puffer.grab();
+                    puffer.goToOut();
+                }
+            }
+
             if (buttonController2.firstDpad_down()){
-                grabber.offset += 0.01;
-            } else if (buttonController2.firstDpad_up()){
                 grabber.offset -= 0.01;
+            } else if (buttonController2.firstDpad_up()){
+                grabber.offset += 0.01;
 
             } else if (buttonController2.firstDpad_right()){
                 grabber.offset = 0;
@@ -627,6 +640,7 @@ public class RobotSystem {
             RobotSystem.initialize(hardwareMap, telemetry, gamepad1, gamepad2);
             initialize();
 
+            led.initialize();
             arm.initialize();
             puffer.initialize();
             grabber.initialize();
@@ -686,11 +700,6 @@ public class RobotSystem {
         protected static SampleMecanumDrive drive;
         public static final HashMap<String, Pose2d> positions = new HashMap<>();
         public static final HashMap<String, TrajectorySequence> trajectories = new HashMap<>();
-
-        public static void keepAngle(double angle) {
-            driveTrain.wantedAngle = angle;
-            driveTrain.angleHolder.start();
-        }
 
         public static void follow(TrajectorySequence sequence) throws InterruptedException{
             drive.followTrajectorySequenceAsync(sequence);
@@ -769,7 +778,7 @@ public class RobotSystem {
                 positions.put("park1", new Pose2d(60.0, 24.0, Math.toRadians(0.0)));
                 positions.put("park2", new Pose2d(36.0, 24.0, Math.toRadians(0.0)));
                 positions.put("park3", new Pose2d(12.0, 24.0, Math.toRadians(0.0)));
-                positions.put("score", new Pose2d(24.0, 12.0, Math.toRadians(-90.0)));
+                positions.put("score", new Pose2d(23.0, 14.0, Math.toRadians(-90.0)));
                 positions.put("start", new Pose2d(30.7, 61.4, Math.toRadians(-90.0)));
                 positions.put("collect", new Pose2d(36.0, 12.0, Math.toRadians(180.0)));
                 positions.put("startToScore_temp0", new Pose2d(36.0, 48.0, Math.toRadians(0.0)));
@@ -1045,8 +1054,10 @@ public class RobotSystem {
 
         // region CYCLE
         public static void cycle(int cycleAmount) throws InterruptedException{
+            driveTrain.goToAngle(RobotSystem.regularAuto.positions.get("score").getHeading(), 1000);
             for (int coneHeight = 4; coneHeight > 4 - cycleAmount; coneHeight--) {
                 scoreAndPrepare(coneHeight);
+                driveTrain.goToAngle(RobotSystem.regularAuto.positions.get("score").getHeading(), 1000);
                 collect();
             }
             score();

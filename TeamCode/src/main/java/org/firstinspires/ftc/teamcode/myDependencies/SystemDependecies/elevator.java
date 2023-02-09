@@ -84,8 +84,10 @@ public class elevator {
         } else {
             puffer.grab();
             driveTrain.slowMode();
-            if (wantedPosition != elevator.bottomPosition) {
+            if (wantedPosition == elevator.bottomPosition) {
                 puffer.goToMid();
+            } else {
+                puffer.goToOut();
             }
         }
 

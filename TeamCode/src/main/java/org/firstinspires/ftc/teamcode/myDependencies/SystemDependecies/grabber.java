@@ -71,7 +71,7 @@ public class grabber {
 
     // region FUNCTIONALITY
     public static void release() { grabberServo.setPosition(releasePosition   ); }
-    public static void grab()        { grabberServo.setPosition(grabPosition      ); }
+    public static void grab()    { grabberServo.setPosition(grabPosition      ); }
 
     public static void goToCone(int coneHeight){ setPosition(pilePositions[coneHeight]); }
     public static void goToConeSlow(int newConeHeight){
