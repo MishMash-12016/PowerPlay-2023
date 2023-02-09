@@ -440,7 +440,7 @@ public class RobotSystem {
                 if (grabber.coneIsInRange()) {
                     grabber.grab();
 
-                    await(grabber::hasCone, 600);
+                    await(grabber::hasCone, 1000);
                     if (!manual.asyncScore.isAlive()) {
                         driveTrain.fastMode();
                     }
@@ -945,18 +945,18 @@ public class RobotSystem {
         public static void initializeTrajectories(boolean isLeft){
             if (isLeft) {
                 // region POSITIONS
-                positions.put("park1", new Pose2d(60.0, 36.0, Math.toRadians(0.0)));
-                positions.put("park2", new Pose2d(36.0, 36.0, Math.toRadians(0.0)));
-                positions.put("park3", new Pose2d(12.0, 36.0, Math.toRadians(0.0)));
-                positions.put("score", new Pose2d(37.0, 5, Math.toRadians(-160.0)));
-                positions.put("start", new Pose2d(31.0, 63.0, Math.toRadians(-90.0)));
-                positions.put("scoreToPark1_temp1", new Pose2d(60.0, 24.0, Math.toRadians(0.0)));
-                positions.put("scoreToPark3_temp0", new Pose2d(24.0, 12.0, Math.toRadians(0.0)));
-                positions.put("scoreToPark3_temp1", new Pose2d(12.0, 24.0, Math.toRadians(0.0)));
+                positions.put("park1", new Pose2d(64.0, 36.0, Math.toRadians(0.0)));
+                positions.put("park2", new Pose2d(39.0, 36.0, Math.toRadians(0.0)));
+                positions.put("park3", new Pose2d(15.0, 36.0, Math.toRadians(0.0)));
+                positions.put("score", new Pose2d(39, 5, Math.toRadians(-164)));
+                positions.put("start", new Pose2d(33.5, 61.5, Math.toRadians(-90.0)));
+                positions.put("scoreToPark1_temp1", new Pose2d(64.0, 24.0, Math.toRadians(0.0)));
+                positions.put("scoreToPark3_temp0", new Pose2d(24.0, 14.0, Math.toRadians(0.0)));
+                positions.put("scoreToPark3_temp1", new Pose2d(15.0, 24.0, Math.toRadians(0.0)));
                 positions.put("startToScore_temp0", new Pose2d(36.0, 48.0, Math.toRadians(0.0)));
                 positions.put("startToScore_temp1", new Pose2d(36.0, 24.0, Math.toRadians(0.0)));
                 positions.put("scoreToPark1_temp0", new Pose2d(48.0, 12.0, Math.toRadians(180.0)));
-                positions.put("scoreToPark2_temp0", new Pose2d(36.0, 24.0, Math.toRadians(-90.0)));
+                positions.put("scoreToPark2_temp0", new Pose2d(39.0, 24.0, Math.toRadians(-90.0)));
                 // endregion
 
                 // region TRAJECTORIES
@@ -1055,10 +1055,10 @@ public class RobotSystem {
 
         // region CYCLE
         public static void cycle(int cycleAmount) throws InterruptedException{
-            driveTrain.goToAngle(RobotSystem.regularAuto.positions.get("score").getHeading(), 1000);
+            //driveTrain.goToAngle(RobotSystem.regularAuto.positions.get("score").getHeading(), 1000);
             for (int coneHeight = 4; coneHeight > 4 - cycleAmount; coneHeight--) {
                 scoreAndPrepare(coneHeight);
-                driveTrain.goToAngle(RobotSystem.regularAuto.positions.get("score").getHeading(), 1000);
+                //driveTrain.goToAngle(RobotSystem.regularAuto.positions.get("score").getHeading(), 1000);
                 collect();
             }
             score();

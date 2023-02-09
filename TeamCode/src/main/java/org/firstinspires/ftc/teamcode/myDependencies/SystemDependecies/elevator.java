@@ -15,7 +15,7 @@ public class elevator {
     // endregion
 
     // region CONSTANTS
-    public static final int highPosition   = 17800;
+    public static final int highPosition   = 17500;
     public static final int middlePosition = 11300;
     public static final int lowPosition    = 4300 ;
     public static final int bottomPosition = 0    ;

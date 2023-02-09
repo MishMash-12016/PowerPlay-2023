@@ -16,7 +16,7 @@ public class arm {
     // endregion
 
     // region CONSTANTS
-    public static final double outPosition = 0.05;
+    public static final double outPosition = 0.04;
     public static final double inPosition  = 0.55 ;
     // endregion
 
