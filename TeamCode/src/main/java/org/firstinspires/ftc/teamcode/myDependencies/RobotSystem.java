@@ -778,13 +778,13 @@ public class RobotSystem {
                 positions.put("park1", new Pose2d(60.0, 24.0, Math.toRadians(0.0)));
                 positions.put("park2", new Pose2d(36.0, 24.0, Math.toRadians(0.0)));
                 positions.put("park3", new Pose2d(12.0, 24.0, Math.toRadians(0.0)));
-                positions.put("score", new Pose2d(23.0, 14.0, Math.toRadians(-90.0)));
-                positions.put("start", new Pose2d(30.7, 61.4, Math.toRadians(-90.0)));
+                positions.put("score", new Pose2d(20.0, 23.0, Math.toRadians(-90.0)));
+                positions.put("start", new Pose2d(31.0, 63.0, Math.toRadians(-90.0)));
                 positions.put("collect", new Pose2d(36.0, 12.0, Math.toRadians(180.0)));
                 positions.put("startToScore_temp0", new Pose2d(36.0, 48.0, Math.toRadians(0.0)));
                 positions.put("startToScore_temp1", new Pose2d(36.0, 24.0, Math.toRadians(0.0)));
                 positions.put("scoreToPark1_temp0", new Pose2d(48.0, 12.0, Math.toRadians(180.0)));
-                positions.put("scoreToPark3_temp0", new Pose2d(14.0, 14.0, Math.toRadians(-45.0)));
+                positions.put("scoreToPark3_temp0", new Pose2d(8.0, 23.0, Math.toRadians(-90.0)));
                 positions.put("scoreToPark2_temp0", new Pose2d(34.0, 14.0, Math.toRadians(-135.0)));
                 // endregion
 
@@ -818,8 +818,8 @@ public class RobotSystem {
                 // region SCORE TO PARK3
                 trajectories.put("scoreToPark3", drive.trajectorySequenceBuilder(positions.get("score"))
                         .setTangent(Math.toRadians(180.0))
-                        .splineToSplineHeading(positions.get("scoreToPark3_temp0"), Math.toRadians(135.0))
-                        .splineTo(positions.get("park3"), Math.toRadians(90.0))
+                        .splineToConstantHeading(positions.get("scoreToPark3_temp0"), Math.toRadians(180.0))
+                        .splineToConstantHeading(positions.get("park3"), Math.toRadians(90.0))
                         .build());
                 // endregion
                 // region START TO SCORE
