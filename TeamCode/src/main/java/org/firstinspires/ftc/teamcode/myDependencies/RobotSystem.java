@@ -948,7 +948,7 @@ public class RobotSystem {
                 positions.put("park1", new Pose2d(64.0, 36.0, Math.toRadians(0.0)));
                 positions.put("park2", new Pose2d(39.0, 36.0, Math.toRadians(0.0)));
                 positions.put("park3", new Pose2d(15.0, 36.0, Math.toRadians(0.0)));
-                positions.put("score", new Pose2d(39, 5, Math.toRadians(-164)));
+                positions.put("score", new Pose2d(39, 5, Math.toRadians(-163)));
                 positions.put("start", new Pose2d(33.5, 61.5, Math.toRadians(-90.0)));
                 positions.put("scoreToPark1_temp1", new Pose2d(64.0, 24.0, Math.toRadians(0.0)));
                 positions.put("scoreToPark3_temp0", new Pose2d(24.0, 14.0, Math.toRadians(0.0)));
@@ -962,7 +962,7 @@ public class RobotSystem {
                 // region TRAJECTORIES
                 // region SCORE TO PARK1
                 trajectories.put("scoreToPark1", drive.trajectorySequenceBuilder(positions.get("score"))
-                        .setTangent(Math.toRadians(30.0))
+                        .setTangent(Math.toRadians(60.0))
                         .splineToSplineHeading(positions.get("scoreToPark1_temp0"), Math.toRadians(0.0))
                         .splineTo(positions.get("scoreToPark1_temp1"), Math.toRadians(90.0))
                         .splineTo(positions.get("park1"), Math.toRadians(90.0))
@@ -996,16 +996,15 @@ public class RobotSystem {
             } else {
 
                 // region POSITIONS
-                positions.put("score", new Pose2d(-36.0, 6.0, Math.toRadians(340.0)));
-                positions.put("park3", new Pose2d(-60.0, 36.0, Math.toRadians(180.0)));
-                positions.put("park2", new Pose2d(-36.0, 36.0, Math.toRadians(180.0)));
-                positions.put("park1", new Pose2d(-12.0, 36.0, Math.toRadians(180.0)));
-                positions.put("start", new Pose2d(-31.0, 63.0, Math.toRadians(270.0)));
+                positions.put("score", new Pose2d(-39.4, 5.1, Math.toRadians(345.0)));
+                positions.put("park3", new Pose2d(-64.0, 36.0, Math.toRadians(180.0)));
+                positions.put("park2", new Pose2d(-39.0, 36.0, Math.toRadians(180.0)));
+                positions.put("park1", new Pose2d(-15.0, 36.0, Math.toRadians(180.0)));
+                positions.put("start", new Pose2d(-38.5, 61.5, Math.toRadians(270.0)));
                 positions.put("scoreToPark3_temp0", new Pose2d(-48.0, 12.0, Math.toRadians(0.0)));
-                positions.put("scoreToPark3_temp1", new Pose2d(-60.0, 24.0, Math.toRadians(180.0)));
-                positions.put("scoreToPark2_temp0", new Pose2d(-36.0, 24.0, Math.toRadians(270.0)));
-                positions.put("scoreToPark1_temp0", new Pose2d(-24.0, 12.0, Math.toRadians(180.0)));
-                positions.put("scoreToPark1_temp1", new Pose2d(-12.0, 24.0, Math.toRadians(180.0)));
+                positions.put("scoreToPark2_temp0", new Pose2d(-39.0, 24.0, Math.toRadians(270.0)));
+                positions.put("scoreToPark1_temp0", new Pose2d(-24.0, 14.0, Math.toRadians(180.0)));
+                positions.put("scoreToPark1_temp1", new Pose2d(-15.0, 24.0, Math.toRadians(180.0)));
                 positions.put("startToScore_temp0", new Pose2d(-36.0, 48.0, Math.toRadians(180.0)));
                 positions.put("startToScore_temp1", new Pose2d(-36.0, 24.0, Math.toRadians(180.0)));
                 // endregion
@@ -1013,9 +1012,8 @@ public class RobotSystem {
                 // region TRAJECTORIES
                 // region SCORE TO PARK3
                 trajectories.put("scoreToPark3", drive.trajectorySequenceBuilder(positions.get("score"))
-                        .setTangent(Math.toRadians(150.0))
+                        .setTangent(Math.toRadians(120.0))
                         .splineToSplineHeading(positions.get("scoreToPark3_temp0"), Math.toRadians(180.0))
-                        .splineTo(positions.get("scoreToPark3_temp1"), Math.toRadians(90.0))
                         .splineTo(positions.get("park3"), Math.toRadians(90.0))
                         .build());
                 // endregion
@@ -1045,12 +1043,7 @@ public class RobotSystem {
                 // endregion
 
             }
-
             drive.setPoseEstimate(positions.get("start"));
-            trajectories.put("temp", drive.trajectorySequenceBuilder(positions.get("start"))
-                    .setTangent(Math.toRadians(0.0))
-                    .splineToConstantHeading(new Pose2d(36, 36, Math.toRadians(-90)), Math.toRadians(-90.0))
-                    .build());
         }
 
         // region CYCLE
