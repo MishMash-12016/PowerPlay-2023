@@ -17,7 +17,6 @@ public class puffer {
     private static final double outPosition = 0.95;
 
     private static final double autonomousOutPosition = 0.88;
-    private static final double autonomousInPosition = 0.16;
 
     private static final double grabPosition    = 0.3;
     private static final double releasePosition = 0.2;
@@ -60,9 +59,6 @@ public class puffer {
 
     public static void autonomousGoToOut(){
         setPosition(autonomousOutPosition);
-    }
-    public static void autonomousGoToIn(){
-        setPosition(autonomousInPosition);
     }
 
     public static boolean isGrabbing() {

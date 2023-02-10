@@ -439,6 +439,7 @@ public class RobotSystem {
 
                 if (grabber.coneIsInRange()) {
                     grabber.grab();
+                    sleep(400);
 
                     await(grabber::hasCone, 1000);
                     if (!manual.asyncScore.isAlive()) {
@@ -779,14 +780,14 @@ public class RobotSystem {
                 positions.put("park1", new Pose2d(60.0, 24.0, Math.toRadians(0.0)));
                 positions.put("park3", new Pose2d(12.0, 24.0, Math.toRadians(0.0)));
                 positions.put("park2", new Pose2d(36.0, 24.0, Math.toRadians(-90.0)));
-                positions.put("start", new Pose2d(30.7, 61.4, Math.toRadians(-90.0)));
-                positions.put("score", new Pose2d(30.0, 10.0, Math.toRadians(-120.0)));
-                positions.put("collect", new Pose2d(38.0, 12.0, Math.toRadians(180.0)));
+                positions.put("start", new Pose2d(33.5, 61.5, Math.toRadians(-90.0)));
+                positions.put("score", new Pose2d(30, 14.5, Math.toRadians(-120.0)));
+                positions.put("collect", new Pose2d(38.0, 19.0, Math.toRadians(180.0)));
                 positions.put("scoreToPark3_temp1", new Pose2d(24.0, 36.0, Math.toRadians(0.0)));
-                positions.put("startToScore_temp0", new Pose2d(34.0, 48.0, Math.toRadians(0.0)));
-                positions.put("startToScore_temp1", new Pose2d(34.0, 24.0, Math.toRadians(0.0)));
+                positions.put("startToScore_temp0", new Pose2d(36.0, 48.0, Math.toRadians(0.0)));
                 positions.put("scoreToPark1_temp0", new Pose2d(48.0, 12.0, Math.toRadians(180.0)));
                 positions.put("scoreToPark3_temp0", new Pose2d(36.0, 24.0, Math.toRadians(-90.0)));
+                positions.put("startToScore_temp1", new Pose2d(36.0, 24.0, Math.toRadians(-105.0)));
                 // endregion
 
                 // region TRAJECTORIES
@@ -827,8 +828,8 @@ public class RobotSystem {
                 trajectories.put("startToScore", drive.trajectorySequenceBuilder(positions.get("start"))
                         .setTangent(Math.toRadians(-60.0))
                         .splineToConstantHeading(positions.get("startToScore_temp0"), Math.toRadians(-90.0))
-                        .splineToConstantHeading(positions.get("startToScore_temp1"), Math.toRadians(-90.0))
-                        .splineToSplineHeading(positions.get("score"), Math.toRadians(-100.0))
+                        .splineToSplineHeading(positions.get("startToScore_temp1"), Math.toRadians(-90.0))
+                        .splineToSplineHeading(positions.get("score"), Math.toRadians(180.0))
                         .build());
                 // endregion
                 // endregion
@@ -841,12 +842,12 @@ public class RobotSystem {
                 positions.put("park3", new Pose2d(-60.0, 24.0, Math.toRadians(180.0)));
                 positions.put("park2", new Pose2d(-36.0, 24.0, Math.toRadians(270.0)));
                 positions.put("park1", new Pose2d(-12.0, 24.0, Math.toRadians(180.0)));
-                positions.put("start", new Pose2d(-30.7, 61.4, Math.toRadians(270.0)));
+                positions.put("start", new Pose2d(-33.5, 61.5, Math.toRadians(270.0)));
                 positions.put("scoreToPark3_temp0", new Pose2d(-48.0, 12.0, Math.toRadians(0.0)));
                 positions.put("scoreToPark1_temp0", new Pose2d(-36.0, 24.0, Math.toRadians(270.0)));
                 positions.put("scoreToPark1_temp1", new Pose2d(-24.0, 36.0, Math.toRadians(180.0)));
-                positions.put("startToScore_temp0", new Pose2d(-34.0, 48.0, Math.toRadians(180.0)));
-                positions.put("startToScore_temp1", new Pose2d(-34.0, 24.0, Math.toRadians(180.0)));
+                positions.put("startToScore_temp0", new Pose2d(-36.0, 48.0, Math.toRadians(180.0)));
+                positions.put("startToScore_temp1", new Pose2d(-36.0, 24.0, Math.toRadians(285.0)));
                 // endregion
 
                 // region TRAJECTORIES
@@ -887,8 +888,8 @@ public class RobotSystem {
                 trajectories.put("startToScore", drive.trajectorySequenceBuilder(positions.get("start"))
                         .setTangent(Math.toRadians(240.0))
                         .splineToConstantHeading(positions.get("startToScore_temp0"), Math.toRadians(270.0))
-                        .splineToConstantHeading(positions.get("startToScore_temp1"), Math.toRadians(270.0))
-                        .splineToSplineHeading(positions.get("score"), Math.toRadians(280.0))
+                        .splineToSplineHeading(positions.get("startToScore_temp1"), Math.toRadians(270.0))
+                        .splineToSplineHeading(positions.get("score"), Math.toRadians(0.0))
                         .build());
                 // endregion
                 // endregion
@@ -908,21 +909,26 @@ public class RobotSystem {
         }
 
         public static void score() throws InterruptedException{
+            arm.goToRelativePosition(0);
+            grabber.goToIn();
             elevator.wantedPosition = elevator.highPosition;
             await(elevator::almostReachedWantedPosition, 1000);
-            puffer.autonomousGoToOut();
-            sleep(275);
+            puffer.goToOut();
+            sleep(500);
             puffer.release();
-            sleep(300);
-            puffer.autonomousGoToIn();
-            sleep(100);
+            sleep(500);
+            puffer.goToIn();
+            sleep(500);
             elevator.wantedPosition = elevator.bottomPosition;
         }
         public static void collect(int coneHeight) throws InterruptedException{
             asyncFollow(trajectories.get("scoreToCollect"));
+            grabber.release();
             await(safeAuto::isStationary);
             grabber.goToConeSlow(coneHeight);
-            arm.goToRelativePosition(1);
+            sleep(500);
+            arm.goToRelativePosition(0.8);
+            sleep(500);
             await(grabber::coneIsInRange, 1500);
             grabber.grab();
             await(grabber::hasCone, 800);
@@ -1064,7 +1070,7 @@ public class RobotSystem {
             sleep(275);
             puffer.release();
             sleep(300);
-            puffer.autonomousGoToIn();
+            puffer.goToIn();
             sleep(100);
             elevator.wantedPosition = elevator.bottomPosition;
         }
@@ -1077,7 +1083,7 @@ public class RobotSystem {
             sleep(275);
             puffer.release();
             sleep(300);
-            puffer.autonomousGoToIn();
+            puffer.goToIn();
             sleep(100);
             elevator.wantedPosition = elevator.bottomPosition;
         }
