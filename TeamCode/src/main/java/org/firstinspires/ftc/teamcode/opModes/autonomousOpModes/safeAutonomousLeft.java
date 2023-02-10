@@ -32,7 +32,7 @@ public class safeAutonomousLeft extends LinearOpMode {
         try {
             RobotSystem.safeAuto.follow(RobotSystem.safeAuto.trajectories.get("startToScore"));
 
-            RobotSystem.safeAuto.cycle(5);
+            RobotSystem.safeAuto.cycle(1);
             //RobotSystem.safeAuto.park();
         } catch (Exception e){
             RobotSystem.safeAuto.terminate();

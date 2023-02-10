@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.myDependencies;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -790,26 +791,26 @@ public class RobotSystem {
                 positions.put("park3", new Pose2d(12.0, 24.0, Math.toRadians(0.0)));
                 positions.put("park2", new Pose2d(36.0, 24.0, Math.toRadians(-90.0)));
                 positions.put("start", new Pose2d(33.5, 61.5, Math.toRadians(-90.0)));
-                positions.put("score", new Pose2d(30, 14.5, Math.toRadians(-120.0)));
-                positions.put("collect", new Pose2d(38.0, 19.0, Math.toRadians(180.0)));
+                positions.put("score", new Pose2d(18, 18, Math.toRadians(-90.0)));
+                positions.put("collect", new Pose2d(32.0, 18.0, Math.toRadians(180.0)));
                 positions.put("scoreToPark3_temp1", new Pose2d(24.0, 36.0, Math.toRadians(0.0)));
                 positions.put("startToScore_temp0", new Pose2d(36.0, 48.0, Math.toRadians(0.0)));
                 positions.put("scoreToPark1_temp0", new Pose2d(48.0, 12.0, Math.toRadians(180.0)));
                 positions.put("scoreToPark3_temp0", new Pose2d(36.0, 24.0, Math.toRadians(-90.0)));
-                positions.put("startToScore_temp1", new Pose2d(36.0, 24.0, Math.toRadians(-105.0)));
+                positions.put("startToScore_temp1", new Pose2d(36.0, 24.0, Math.toRadians(-90.0)));
                 // endregion
 
                 // region TRAJECTORIES
                 // region COLLECT TO SCORE
                 trajectories.put("collectToScore", drive.trajectorySequenceBuilder(positions.get("collect"))
-                        .setTangent(Math.toRadians(190.0))
-                        .splineToSplineHeading(positions.get("score"), Math.toRadians(190.0))
+                        .setTangent(Math.toRadians(180.0))
+                        .splineToSplineHeading(positions.get("score"), Math.toRadians(180.0))
                         .build());
                 // endregion
                 // region SCORE TO COLLECT
                 trajectories.put("scoreToCollect", drive.trajectorySequenceBuilder(positions.get("score"))
-                        .setTangent(Math.toRadians(10.0))
-                        .splineToSplineHeading(positions.get("collect"), Math.toRadians(10.0))
+                        .setTangent(Math.toRadians(0.0))
+                        .splineToSplineHeading(positions.get("collect"), Math.toRadians(0.0))
                         .build());
                 // endregion
                 // region SCORE TO PARK3
@@ -837,8 +838,8 @@ public class RobotSystem {
                 trajectories.put("startToScore", drive.trajectorySequenceBuilder(positions.get("start"))
                         .setTangent(Math.toRadians(-60.0))
                         .splineToConstantHeading(positions.get("startToScore_temp0"), Math.toRadians(-90.0))
-                        .splineToSplineHeading(positions.get("startToScore_temp1"), Math.toRadians(-90.0))
-                        .splineToSplineHeading(positions.get("score"), Math.toRadians(180.0))
+                        .splineToConstantHeading(positions.get("startToScore_temp1"), Math.toRadians(-90.0))
+                        .splineToConstantHeading(positions.get("score"), Math.toRadians(180.0))
                         .build());
                 // endregion
                 // endregion
@@ -936,7 +937,7 @@ public class RobotSystem {
             await(safeAuto::isStationary);
             grabber.goToConeSlow(coneHeight);
             sleep(500);
-            arm.goToRelativePosition(0.8);
+            arm.goToRelativePosition(1);
             sleep(500);
             await(grabber::coneIsInRange, 1500);
             grabber.grab();
