@@ -772,6 +772,17 @@ public class RobotSystem {
         // endregion
     }
 
+    public static class test extends auto{
+        public static void initializeTrajectories(){
+
+            trajectories.put("startToTest", drive.trajectorySequenceBuilder(new Pose2d(33.5, 61.5, Math.toRadians(-90.0)))
+                    .splineToSplineHeading(new Pose2d(36, 36, Math.toRadians(-90)), Math.toRadians(-90))
+                    .build());
+
+            drive.setPoseEstimate(new Pose2d(33.5, 61.5, Math.toRadians(-90.0)));
+        }
+    }
+
     public static class safeAuto extends auto{
         public static void initializeTrajectories(boolean isLeft){
             if (isLeft) {

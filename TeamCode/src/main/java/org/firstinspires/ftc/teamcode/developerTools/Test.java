@@ -19,8 +19,16 @@ import org.opencv.core.Mat;
 public class Test extends LinearOpMode {
     @Override
     public void runOpMode(){
+        RobotSystem.test.initializeAll(hardwareMap, telemetry, gamepad1, gamepad2);
+        RobotSystem.test.initializeTrajectories();
 
         waitForStart();
+
+        try {
+            RobotSystem.test.follow(RobotSystem.test.trajectories.get("startToTest"));
+        } catch (Exception e) {
+            RobotSystem.test.terminate();
+        }
 
         while (opModeIsActive() && !RobotSystem.isStopRequested){}
 
