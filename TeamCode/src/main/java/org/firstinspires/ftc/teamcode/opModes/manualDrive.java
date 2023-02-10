@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.myDependencies.RobotSystem;
+import org.firstinspires.ftc.teamcode.myDependencies.SystemDependecies.grabber;
 
 @TeleOp(group = "competition op modes")
 public class manualDrive extends LinearOpMode{
@@ -21,7 +22,8 @@ public class manualDrive extends LinearOpMode{
         RobotSystem.startAllTeleOpControllers();
 
         while (opModeIsActive()){
-
+            telemetry.addData("distance", grabber.distanceReading());
+            telemetry.update();
         }
 
         RobotSystem.terminate();

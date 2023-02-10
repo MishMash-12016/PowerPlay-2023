@@ -117,8 +117,10 @@ public class elevator {
 
     private static double calculatePower(double distanceToWantedPosition){
         if (!isUp() && wantedPosition == 0){
+            led.green();
             return 0;
         }
+        led.red();
 
         if (Math.abs(distanceToWantedPosition) < marginOfError){
             return holdingPower;

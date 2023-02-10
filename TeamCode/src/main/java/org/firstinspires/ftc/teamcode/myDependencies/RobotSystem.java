@@ -437,33 +437,27 @@ public class RobotSystem {
 
                 await(() -> grabber.coneIsInRange() && !grabber.isMoving());
 
-                if (grabber.coneIsInRange()) {
-                    grabber.grab();
-                    sleep(400);
+                grabber.grab();
+                sleep(400);
 
-                    await(grabber::hasCone, 1000);
-                    if (!manual.asyncScore.isAlive()) {
-                        driveTrain.fastMode();
-                    }
-                    await(() -> !arm.isOut() && !elevator.isUp() && elevator.wantedPosition == elevator.bottomPosition);
-                    allowScoring = false;
-                    manual.asyncScore.interrupt();
-
-                    grabber.goToIn();
-
-                    await(() -> !grabber.isOut());
-
-                    puffer.grab();
-                    puffer.goToMid();
-                    grabber.release();
-
-                } else {
-                    grabber.goToIn();
-                    grabber.release();
+                await(grabber::hasCone, 1000);
+                if (!manual.asyncScore.isAlive()) {
+                    driveTrain.fastMode();
                 }
+                await(() -> !arm.isOut() && !elevator.isUp() && elevator.wantedPosition == elevator.bottomPosition);
+                allowScoring = false;
+                manual.asyncScore.interrupt();
+
+                grabber.goToIn();
+
+                await(() -> !grabber.isOut());
+
+                puffer.grab();
+                puffer.goToMid();
+                grabber.release();
+
             }catch (Exception e){
                 if (e == softStopRequest){
-                    arm.goToRelativePosition(0);
                     grabber.release();
                     grabber.goToIn();
                 }
@@ -484,8 +478,7 @@ public class RobotSystem {
                 grabber.goToCone(0);
                 grabber.release();
                 sleep(200);
-                while (!RobotSystem.manual.asyncCollect.isInterrupted() && !isStopRequested &&
-                        (gamepad1.left_trigger > 0 || gamepad1.left_bumper)) {
+                while (gamepad1.left_trigger > 0 || gamepad1.left_bumper) {
                     arm.goToRelativePosition(gamepad1.left_trigger);
 
                     if (grabber.coneIsInRange()) {
@@ -497,37 +490,42 @@ public class RobotSystem {
                             grabber.release();
                         }
                     }
+
+                    if (isStopRequested){
+                        throw hardStopRequest;
+                    }
+
+                    if (RobotSystem.manual.asyncCollect.isInterrupted()){
+                        throw softStopRequest;
+                    }
                 }
 
                 if (!manual.asyncScore.isAlive()) {
                     driveTrain.fastMode();
                 }
 
-                if (isStopRequested){
-                    throw hardStopRequest;
-                }
+                if (grabber.coneIsInRange()) {
+                    await(grabber::hasCone, 500);
 
-                if (RobotSystem.manual.asyncCollect.isInterrupted()){
+                    grabber.goToMid();
+
+                    arm.goToRelativePosition(0);
+
+                    await(() -> !arm.isOut() && !elevator.isUp() && elevator.wantedPosition == elevator.bottomPosition);
+
+                    allowScoring = false;
+                    manual.asyncScore.interrupt();
+
+                    grabber.goToIn();
+
+                    await(() -> !grabber.isOut(), 900);
+
+                    grabber.release();
+                    puffer.grab();
+                    puffer.goToMid();
+                } else {
                     throw softStopRequest;
                 }
-
-                grabber.goToMid();
-
-                arm.goToRelativePosition(0);
-
-                await(() -> !arm.isOut() && !elevator.isUp() && elevator.wantedPosition == elevator.bottomPosition);
-
-                allowScoring = false;
-                manual.asyncScore.interrupt();
-
-                grabber.goToIn();
-
-                await(() -> !grabber.isOut(), 900);
-
-                grabber.release();
-                puffer.grab();
-                puffer.goToMid();
-
 
             }catch (Exception e){
                 if (e == softStopRequest){
