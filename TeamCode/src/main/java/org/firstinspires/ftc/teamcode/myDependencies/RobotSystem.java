@@ -1001,7 +1001,7 @@ public class RobotSystem {
                 // endregion
                 // region START TO SCORE
                 trajectories.put("startToScore", drive.trajectorySequenceBuilder(positions.get("start"))
-                        .setTangent(Math.toRadians(-60.0))
+                        .setTangent(Math.toRadians(-40.0))
                         .splineToConstantHeading(positions.get("startToScore_temp0"), Math.toRadians(-90.0))
                         .splineToConstantHeading(positions.get("startToScore_temp1"), Math.toRadians(-90.0))
                         .splineToSplineHeading(positions.get("score"), Math.toRadians(-90.0))
@@ -1064,10 +1064,10 @@ public class RobotSystem {
 
         // region CYCLE
         public static void cycle(int cycleAmount) throws InterruptedException{
-            driveTrain.goToAngle(RobotSystem.regularAuto.positions.get("score").getHeading(), 1000);
+            //driveTrain.goToAngle(RobotSystem.regularAuto.positions.get("score").getHeading(), 1000);
             for (int coneHeight = 4; coneHeight > 4 - cycleAmount; coneHeight--) {
                 scoreAndPrepare(coneHeight);
-                driveTrain.goToAngle(RobotSystem.regularAuto.positions.get("score").getHeading(), 1000);
+                //driveTrain.goToAngle(RobotSystem.regularAuto.positions.get("score").getHeading(), 1000);
                 collect();
             }
             score();
