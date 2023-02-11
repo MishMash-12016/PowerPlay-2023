@@ -20,7 +20,7 @@ public class safeAutonomousLeft extends LinearOpMode {
     @Override
     public void runOpMode(){
         RobotSystem.safeAuto.initializeAll(hardwareMap, telemetry, gamepad1, gamepad2);
-        RobotSystem.safeAuto.initializeTrajectories(true);
+        RobotSystem.safeAuto.initializeTrajectories();
 
         waitForStart();
         RobotSystem.safeAuto.checkParkingPosition();
@@ -32,14 +32,14 @@ public class safeAutonomousLeft extends LinearOpMode {
         try {
             RobotSystem.safeAuto.follow(RobotSystem.safeAuto.trajectories.get("startToScore"));
 
-            RobotSystem.safeAuto.cycle(5);
-            RobotSystem.safeAuto.park();
+            RobotSystem.safeAuto.cycle(1);
+            RobotSystem.safeAuto.follow(RobotSystem.safeAuto.trajectories.get("scoreToPark1"));
+
+            while (opModeIsActive() && !RobotSystem.isStopRequested){}
+
+            RobotSystem.safeAuto.terminate();
         } catch (Exception e){
             RobotSystem.safeAuto.terminate();
         }
-
-        while (opModeIsActive() && !RobotSystem.isStopRequested){}
-
-        RobotSystem.safeAuto.terminate();
     }
 }

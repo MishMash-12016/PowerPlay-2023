@@ -242,6 +242,17 @@ public class RobotSystem {
         }
     }
     public static class buttonController2 {
+        public static boolean rightTrigger = true;
+        public static boolean firstRightTrigger(){
+            if (gamepad2.right_trigger > 0){
+                if(rightTrigger){
+                    rightTrigger = false;
+                    return true;
+                }
+            } else rightTrigger = true;
+            return false;
+        }
+
         public static boolean a = true;
         public static boolean firstAPress(){
             if (gamepad2.a){
@@ -589,7 +600,13 @@ public class RobotSystem {
     // region OPERATOR CONTROLLED FUNCTIONS
     private static final Thread operatorController = new Thread(() -> {
         while (!isStopRequested && !RobotSystem.operatorController.isInterrupted()) {
-            if(buttonController2.firstAPress()){
+            if (buttonController2.firstRightTrigger()){
+                manual.asyncCollect.interrupt();
+                manual.asyncHighCollect.interrupt();
+                manual.asyncScore.interrupt();
+            }
+
+            if (buttonController2.firstAPress()){
                 driveTrain.resetFieldOriented();
             }
 
@@ -783,128 +800,62 @@ public class RobotSystem {
     }
 
     public static class safeAuto extends auto{
-        public static void initializeTrajectories(boolean isLeft){
-            if (isLeft) {
+        public static void initializeTrajectories(){
+            // region POSITIONS
+            positions.put("park1", new Pose2d(60.0, 28.0, Math.toRadians(-90.0)));
+            positions.put("park3", new Pose2d(12.0, 24.0, Math.toRadians(0.0)));
+            positions.put("park2", new Pose2d(36.0, 24.0, Math.toRadians(-90.0)));
+            positions.put("start", new Pose2d(33.5, 61.5, Math.toRadians(-90.0)));
+            positions.put("score", new Pose2d(21, 17, Math.toRadians(-90.0)));
+            positions.put("collect", new Pose2d(30.0, 18.0, Math.toRadians(180.0)));
+            positions.put("startToScore_temp0", new Pose2d(36.0, 48.0, Math.toRadians(0.0)));
+            positions.put("scoreToPark1_temp0", new Pose2d(36.0, 24.0, Math.toRadians(-90.0)));
+            positions.put("scoreToPark1_temp1", new Pose2d(48, 40, Math.toRadians(-90.0)));
+            positions.put("startToScore_temp1", new Pose2d(36.0, 24.0, Math.toRadians(-90.0)));
+            // endregion
 
-                // region POSITIONS
-                positions.put("park1", new Pose2d(60.0, 24.0, Math.toRadians(0.0)));
-                positions.put("park3", new Pose2d(12.0, 24.0, Math.toRadians(0.0)));
-                positions.put("park2", new Pose2d(36.0, 24.0, Math.toRadians(-90.0)));
-                positions.put("start", new Pose2d(33.5, 61.5, Math.toRadians(-90.0)));
-                positions.put("score", new Pose2d(21, 17, Math.toRadians(-90.0)));
-                positions.put("collect", new Pose2d(30.0, 18.0, Math.toRadians(180.0)));
-                positions.put("scoreToPark3_temp1", new Pose2d(24.0, 36.0, Math.toRadians(0.0)));
-                positions.put("startToScore_temp0", new Pose2d(36.0, 48.0, Math.toRadians(0.0)));
-                positions.put("scoreToPark1_temp0", new Pose2d(48.0, 12.0, Math.toRadians(180.0)));
-                positions.put("scoreToPark3_temp0", new Pose2d(36.0, 24.0, Math.toRadians(-90.0)));
-                positions.put("startToScore_temp1", new Pose2d(36.0, 24.0, Math.toRadians(-90.0)));
-                // endregion
-
-                // region TRAJECTORIES
-                // region COLLECT TO SCORE
-                trajectories.put("collectToScore", drive.trajectorySequenceBuilder(positions.get("collect"))
-                        .setTangent(Math.toRadians(180.0))
-                        .splineToSplineHeading(positions.get("score"), Math.toRadians(180.0))
-                        .build());
-                // endregion
-                // region SCORE TO COLLECT
-                trajectories.put("scoreToCollect", drive.trajectorySequenceBuilder(positions.get("score"))
-                        .setTangent(Math.toRadians(0.0))
-                        .splineToSplineHeading(positions.get("collect"), Math.toRadians(0.0))
-                        .build());
-                // endregion
-                // region SCORE TO PARK3
-                trajectories.put("scoreToPark3", drive.trajectorySequenceBuilder(positions.get("score"))
-                        .setTangent(Math.toRadians(20.0))
-                        .splineToSplineHeading(positions.get("scoreToPark1_temp0"), Math.toRadians(0.0))
-                        .splineTo(positions.get("park1"), Math.toRadians(90.0))
-                        .build());
-                // endregion
-                // region SCORE TO PARK2
-                trajectories.put("scoreToPark2", drive.trajectorySequenceBuilder(positions.get("score"))
-                        .setTangent(Math.toRadians(30.0))
-                        .splineToSplineHeading(positions.get("park2"), Math.toRadians(90.0))
-                        .build());
-                // endregion
-                // region SCORE TO PARK1
-                trajectories.put("scoreToPark1", drive.trajectorySequenceBuilder(positions.get("score"))
-                        .setTangent(Math.toRadians(50.0))
-                        .splineToSplineHeading(positions.get("scoreToPark3_temp0"), Math.toRadians(90.0))
-                        .splineTo(positions.get("scoreToPark3_temp1"), Math.toRadians(180.0))
-                        .splineTo(positions.get("park3"), Math.toRadians(-90.0))
-                        .build());
-                // endregion
-                // region START TO SCORE
-                trajectories.put("startToScore", drive.trajectorySequenceBuilder(positions.get("start"))
-                        .setTangent(Math.toRadians(-60.0))
-                        .splineToConstantHeading(positions.get("startToScore_temp0"), Math.toRadians(-90.0))
-                        .splineToConstantHeading(positions.get("startToScore_temp1"), Math.toRadians(-90.0))
-                        .splineToConstantHeading(positions.get("score"), Math.toRadians(180.0))
-                        .build());
-                // endregion
-                // endregion
-
-            } else {
-
-                // region POSITIONS
-                positions.put("collect", new Pose2d(-38.0, 12.0, Math.toRadians(0.0)));
-                positions.put("score", new Pose2d(-30.0, 10.0, Math.toRadians(300.0)));
-                positions.put("park3", new Pose2d(-60.0, 24.0, Math.toRadians(180.0)));
-                positions.put("park2", new Pose2d(-36.0, 24.0, Math.toRadians(270.0)));
-                positions.put("park1", new Pose2d(-12.0, 24.0, Math.toRadians(180.0)));
-                positions.put("start", new Pose2d(-33.5, 61.5, Math.toRadians(270.0)));
-                positions.put("scoreToPark3_temp0", new Pose2d(-48.0, 12.0, Math.toRadians(0.0)));
-                positions.put("scoreToPark1_temp0", new Pose2d(-36.0, 24.0, Math.toRadians(270.0)));
-                positions.put("scoreToPark1_temp1", new Pose2d(-24.0, 36.0, Math.toRadians(180.0)));
-                positions.put("startToScore_temp0", new Pose2d(-36.0, 48.0, Math.toRadians(180.0)));
-                positions.put("startToScore_temp1", new Pose2d(-36.0, 24.0, Math.toRadians(285.0)));
-                // endregion
-
-                // region TRAJECTORIES
-                // region COLLECT TO SCORE
-                trajectories.put("collectToScore", drive.trajectorySequenceBuilder(positions.get("collect"))
-                        .setTangent(Math.toRadians(-10.0))
-                        .splineToSplineHeading(positions.get("score"), Math.toRadians(-10.0))
-                        .build());
-                // endregion
-                // region SCORE TO COLLECT
-                trajectories.put("scoreToCollect", drive.trajectorySequenceBuilder(positions.get("score"))
-                        .setTangent(Math.toRadians(170.0))
-                        .splineToSplineHeading(positions.get("collect"), Math.toRadians(170.0))
-                        .build());
-                // endregion
-                // region SCORE TO PARK3
-                trajectories.put("scoreToPark3", drive.trajectorySequenceBuilder(positions.get("score"))
-                        .setTangent(Math.toRadians(160.0))
-                        .splineToSplineHeading(positions.get("scoreToPark3_temp0"), Math.toRadians(180.0))
-                        .splineTo(positions.get("park3"), Math.toRadians(90.0))
-                        .build());
-                // endregion
-                // region SCORE TO PARK2
-                trajectories.put("scoreToPark2", drive.trajectorySequenceBuilder(positions.get("score"))
-                        .setTangent(Math.toRadians(150.0))
-                        .splineToSplineHeading(positions.get("park2"), Math.toRadians(90.0))
-                        .build());
-                // endregion
-                // region SCORE TO PARK1
-                trajectories.put("scoreToPark1", drive.trajectorySequenceBuilder(positions.get("score"))
-                        .setTangent(Math.toRadians(130.0))
-                        .splineToSplineHeading(positions.get("scoreToPark1_temp0"), Math.toRadians(90.0))
-                        .splineTo(positions.get("scoreToPark1_temp1"), Math.toRadians(0.0))
-                        .splineTo(positions.get("park1"), Math.toRadians(270.0))
-                        .build());
-                // endregion
-                // region START TO SCORE
-                trajectories.put("startToScore", drive.trajectorySequenceBuilder(positions.get("start"))
-                        .setTangent(Math.toRadians(240.0))
-                        .splineToConstantHeading(positions.get("startToScore_temp0"), Math.toRadians(270.0))
-                        .splineToSplineHeading(positions.get("startToScore_temp1"), Math.toRadians(270.0))
-                        .splineToSplineHeading(positions.get("score"), Math.toRadians(0.0))
-                        .build());
-                // endregion
-                // endregion
-
-            }
+            // region TRAJECTORIES
+            // region COLLECT TO SCORE
+            trajectories.put("collectToScore", drive.trajectorySequenceBuilder(positions.get("collect"))
+                    .setTangent(Math.toRadians(180.0))
+                    .splineToSplineHeading(positions.get("score"), Math.toRadians(180.0))
+                    .build());
+            // endregion
+            // region SCORE TO COLLECT
+            trajectories.put("scoreToCollect", drive.trajectorySequenceBuilder(positions.get("score"))
+                    .setTangent(Math.toRadians(0.0))
+                    .splineToSplineHeading(positions.get("collect"), Math.toRadians(0.0))
+                    .build());
+            // endregion
+            // region SCORE TO PARK1
+            trajectories.put("scoreToPark1", drive.trajectorySequenceBuilder(positions.get("score"))
+                    .setTangent(Math.toRadians(20.0))
+                    .splineToSplineHeading(positions.get("scoreToPark1_temp0"), Math.toRadians(90.0))
+                    .splineTo(positions.get("scoreToPark1_temp1"), Math.toRadians(0.0))
+                    .splineTo(positions.get("park1"), Math.toRadians(-90.0))
+                    .build());
+            // endregion
+            // region SCORE TO PARK2
+            trajectories.put("scoreToPark2", drive.trajectorySequenceBuilder(positions.get("score"))
+                    .setTangent(Math.toRadians(30.0))
+                    .splineToSplineHeading(positions.get("park2"), Math.toRadians(90.0))
+                    .build());
+            // endregion
+            // region SCORE TO PARK3
+            trajectories.put("scoreToPark3", drive.trajectorySequenceBuilder(positions.get("score"))
+                    .setTangent(Math.toRadians(180.0))
+                    .splineToConstantHeading(positions.get("park3"), Math.toRadians(90.0))
+                    .build());
+            // endregion
+            // region START TO SCORE
+            trajectories.put("startToScore", drive.trajectorySequenceBuilder(positions.get("start"))
+                    .setTangent(Math.toRadians(-60.0))
+                    .splineToConstantHeading(positions.get("startToScore_temp0"), Math.toRadians(-90.0))
+                    .splineToConstantHeading(positions.get("startToScore_temp1"), Math.toRadians(-90.0))
+                    .splineToConstantHeading(positions.get("score"), Math.toRadians(180.0))
+                    .build());
+            // endregion
+            // endregion
 
             drive.setPoseEstimate(positions.get("start"));
         }
