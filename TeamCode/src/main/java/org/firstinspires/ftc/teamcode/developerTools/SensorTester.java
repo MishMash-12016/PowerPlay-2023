@@ -29,7 +29,7 @@ public class SensorTester extends LinearOpMode {
 
         while (opModeIsActive()){
             telemetry.addData("distanceFromConeSensor", distanceFromConeSensor.getDistance(DistanceUnit.CM));
-            telemetry.addData("DigitalChannel"        , isArmOut.getState());
+            telemetry.addData("isArmOutSensor"        , isArmOut.getState());
             telemetry.addData("isElevatorUpSensor"    , isElevatorUpSensor.getState());
             telemetry.addData("isGrabberOutSensor"    , isGrabberOutSensor.getState());
             telemetry.update();

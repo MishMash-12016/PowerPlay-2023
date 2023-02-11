@@ -775,7 +775,7 @@ public class RobotSystem {
         public static void initializeTrajectories(){
 
             trajectories.put("startToTest", drive.trajectorySequenceBuilder(new Pose2d(33.5, 61.5, Math.toRadians(-90.0)))
-                    .splineToSplineHeading(new Pose2d(36, 36, Math.toRadians(-90)), Math.toRadians(-90))
+                    .splineToConstantHeading(new Pose2d(36, 60, Math.toRadians(-90)), Math.toRadians(-90))
                     .build());
 
             drive.setPoseEstimate(new Pose2d(33.5, 61.5, Math.toRadians(-90.0)));
@@ -791,8 +791,8 @@ public class RobotSystem {
                 positions.put("park3", new Pose2d(12.0, 24.0, Math.toRadians(0.0)));
                 positions.put("park2", new Pose2d(36.0, 24.0, Math.toRadians(-90.0)));
                 positions.put("start", new Pose2d(33.5, 61.5, Math.toRadians(-90.0)));
-                positions.put("score", new Pose2d(18, 18, Math.toRadians(-90.0)));
-                positions.put("collect", new Pose2d(32.0, 18.0, Math.toRadians(180.0)));
+                positions.put("score", new Pose2d(21, 17, Math.toRadians(-90.0)));
+                positions.put("collect", new Pose2d(30.0, 18.0, Math.toRadians(180.0)));
                 positions.put("scoreToPark3_temp1", new Pose2d(24.0, 36.0, Math.toRadians(0.0)));
                 positions.put("startToScore_temp0", new Pose2d(36.0, 48.0, Math.toRadians(0.0)));
                 positions.put("scoreToPark1_temp0", new Pose2d(48.0, 12.0, Math.toRadians(180.0)));
@@ -964,7 +964,7 @@ public class RobotSystem {
                 positions.put("park1", new Pose2d(64.0, 36.0, Math.toRadians(0.0)));
                 positions.put("park2", new Pose2d(39.0, 36.0, Math.toRadians(0.0)));
                 positions.put("park3", new Pose2d(15.0, 36.0, Math.toRadians(0.0)));
-                positions.put("score", new Pose2d(39, 5, Math.toRadians(-163)));
+                positions.put("score", new Pose2d(39, 4.75, Math.toRadians(-164.5)));
                 positions.put("start", new Pose2d(33.5, 61.5, Math.toRadians(-90.0)));
                 positions.put("scoreToPark1_temp1", new Pose2d(64.0, 24.0, Math.toRadians(0.0)));
                 positions.put("scoreToPark3_temp0", new Pose2d(24.0, 14.0, Math.toRadians(0.0)));
@@ -1012,7 +1012,7 @@ public class RobotSystem {
             } else {
 
                 // region POSITIONS
-                positions.put("score", new Pose2d(-39.4, 5.1, Math.toRadians(345.0)));
+                positions.put("score", new Pose2d(-39.4, 5.1, Math.toRadians(348.0)));
                 positions.put("park3", new Pose2d(-64.0, 36.0, Math.toRadians(180.0)));
                 positions.put("park2", new Pose2d(-39.0, 36.0, Math.toRadians(180.0)));
                 positions.put("park1", new Pose2d(-15.0, 36.0, Math.toRadians(180.0)));
