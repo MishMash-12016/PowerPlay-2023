@@ -162,22 +162,6 @@ public class driveTrain {
             // endregion
         }
     });
-    private static final ElapsedTime timePassed = new ElapsedTime();
-
-    public static void goToAngle(double wantedAngle, double timeLimit){
-        wantedAngle *= -1;
-        wantedAngle -= Math.toRadians(90);
-
-        timePassed.reset();
-        while ((wantedAngle - getRobotAngle() + Math.PI * 10) % (Math.PI * 2) > 0.05 && !RobotSystem.isStopRequested && timeLimit > timePassed.milliseconds()){
-            if ((wantedAngle - getRobotAngle() + Math.PI * 10) % (Math.PI * 2) > -Math.PI && (wantedAngle - getRobotAngle() + Math.PI * 10) % (Math.PI * 2) < Math.PI)
-                turn(-0.3);
-            else
-                turn(0.3);
-        }
-        turn(0);
-    }
-
     public static void slowMode(){
         drivingStrength = slowDrivingStrength;
         turningStrength = slowTurningStrength;
@@ -213,13 +197,6 @@ public class driveTrain {
         angle = Math.PI * 2 - angle;
 
         return angle + driveTrain.startingAngle;
-    }
-
-    public static void turn(double p){
-        frontRight.setPower(p);
-        frontLeft .setPower(-p);
-        backRight .setPower(p);
-        backLeft  .setPower(-p);
     }
     // endregion
 }

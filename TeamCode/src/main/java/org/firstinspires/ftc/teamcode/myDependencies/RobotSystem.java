@@ -24,17 +24,17 @@ public class RobotSystem {
     // region SYSTEM CONSTANTS
     public static final InterruptedException hardStopRequest = new InterruptedException("stop everything !");
     public static final InterruptedException softStopRequest = new InterruptedException("stop running safely");
-
-    public static Gamepad gamepad1;
-    public static Gamepad gamepad2;
-    public static Telemetry telemetry;
-    public static HardwareMap hardwareMap;
     // endregion
 
     // region SYSTEM VARIABLES
     public static boolean isStopRequested;
     public static boolean allowScoring;
     public static int currentConeHeight;
+
+    public static Gamepad gamepad1;
+    public static Gamepad gamepad2;
+    public static Telemetry telemetry;
+    public static HardwareMap hardwareMap;
     // endregion
 
     // region INITIALIZATION
